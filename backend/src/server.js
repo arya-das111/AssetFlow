@@ -45,6 +45,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AssetFlow API Server running smoothly' });
 });
 
+// Database seed endpoint
+app.get('/api/seed', async (req, res, next) => {
+  try {
+    const seed = require('../prisma/seed');
+    await seed();
+    res.json({ status: 'ok', message: 'Database seeded successfully with default accounts' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Centralized error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
