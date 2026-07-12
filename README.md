@@ -1,13 +1,8 @@
 # 🛡️ AssetFlow — Enterprise Asset & Resource Management System
 
-AssetFlow is a high-fidelity, production-grade **Asset Lifecycle & Booking Scheduler** designed for modern corporate offices. Styled in a bespoke, premium **dark-mode wireframe/sketchbook aesthetic** (using Kalam and Outfit typography), the application combines bulletproof backend transaction-safety with a sleek, real-time frontend workspace.
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19.0-61dafb.svg?style=flat-square&logo=react)](https://react.dev/)
-[![Express](https://img.shields.io/badge/Express-4.19-lightgray.svg?style=flat-square&logo=express)](https://expressjs.com/)
-[![Prisma ORM](https://img.shields.io/badge/Prisma-5.12-16a34a.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql)](https://www.mysql.com/)
-[![Jest](https://img.shields.io/badge/Jest-29.0-red?style=flat-square&logo=jest)](https://jestjs.io/)
+### 🌐 Live Production Deployment Links:
+*   🚀 **React Frontend SPA UI**: [https://assetflow-frontend-one.vercel.app](https://assetflow-frontend-one.vercel.app)
+*   ⚙️ **Express Backend API**: [https://assetflow-backend-six.vercel.app](https://assetflow-backend-six.vercel.app)
 
 ---
 
