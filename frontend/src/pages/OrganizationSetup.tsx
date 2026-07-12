@@ -291,24 +291,24 @@ export const OrganizationSetup: React.FC = () => {
         </div>
         
         {/* Tab Selector buttons */}
-        <div className="flex border border-border rounded-xl p-1 bg-muted/40 max-w-sm">
+        <div className="flex flex-wrap sm:flex-nowrap border border-border rounded-xl p-1 bg-muted/40 max-w-full sm:max-w-sm w-full sm:w-auto gap-1 sm:gap-0">
           <button 
             onClick={() => setActiveTab('departments')}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'departments' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'departments' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Building2 size={13} />
             <span>Departments</span>
           </button>
           <button 
             onClick={() => setActiveTab('categories')}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'categories' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'categories' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Settings2 size={13} />
             <span>Categories</span>
           </button>
           <button 
             onClick={() => setActiveTab('employees')}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'employees' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${activeTab === 'employees' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users size={13} />
             <span>Employees</span>
@@ -318,7 +318,7 @@ export const OrganizationSetup: React.FC = () => {
 
       {/* Main Container */}
       <div className="card-surface p-6 min-h-[400px]">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
           <h3 className="text-lg font-bold text-foreground tracking-tight uppercase">
             {activeTab === 'departments' && 'Corporate Department Registry'}
             {activeTab === 'categories' && 'Asset Classification Tags'}
@@ -329,7 +329,7 @@ export const OrganizationSetup: React.FC = () => {
           {activeTab === 'departments' && (
             <button 
               onClick={() => setShowDeptModal(true)}
-              className="flex items-center gap-1 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-primary/90 transition-all cursor-pointer"
+              className="flex items-center gap-1 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-primary/90 transition-all cursor-pointer w-full sm:w-auto justify-center"
             >
               <Plus size={14} />
               <span>Create Department</span>
@@ -339,7 +339,7 @@ export const OrganizationSetup: React.FC = () => {
           {activeTab === 'categories' && (
             <button 
               onClick={() => setShowCatModal(true)}
-              className="flex items-center gap-1 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-primary/90 transition-all cursor-pointer"
+              className="flex items-center gap-1 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-primary/90 transition-all cursor-pointer w-full sm:w-auto justify-center"
             >
               <Plus size={14} />
               <span>Add Category</span>
