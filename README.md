@@ -28,7 +28,7 @@ AssetFlow splits its operations into two distinct service boundaries unified und
        │   Port: 5173           │              │ Port: 4000             │
        └──────────┬─────────────┘              └────────────┬───────────┘
                   │                                         │
-                  │   HTTP requests / JWT Auth headers       │
+                  │   HTTP requests / JWT Auth headers      │
                   └─────────────────────────────────────────┼────────────────┐
                                                             ▼                │
                                                ┌────────────────────────┐    │
