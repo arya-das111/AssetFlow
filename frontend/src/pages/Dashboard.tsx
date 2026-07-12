@@ -58,7 +58,17 @@ export const Dashboard: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         setMetrics(data.metrics);
-        setChartData(data.chartData.filter((item: any) => item.value > 0)); // Only show non-zero values
+        // Map backend chart colors to theme oklch chart palette variables
+        const themedChartData = data.chartData
+          .filter((item: any) => item.value > 0)
+          .map((item: any) => {
+            let color = 'var(--chart-1)';
+            if (item.name === 'Available') color = 'var(--color-success)';
+            else if (item.name === 'Allocated') color = 'var(--color-info)';
+            else if (item.name === 'Maintenance') color = 'var(--color-warning)';
+            return { ...item, color };
+          });
+        setChartData(themedChartData);
         setActivityFeed(data.activityFeed);
       }
     } catch (err) {
@@ -74,14 +84,13 @@ export const Dashboard: React.FC = () => {
 
   if (loading || !metrics) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-white">
-        <div className="w-10 h-10 border-4 border-accent-green border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 font-sketch text-muted">Reading dashboard data...</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-xs font-semibold text-muted-foreground">Reading dashboard data...</p>
       </div>
     );
   }
 
-  // Quick Action click handlers
   const handleQuickAction = (action: string) => {
     if (action === 'register') navigate('/assets');
     if (action === 'book') navigate('/bookings');
@@ -91,15 +100,15 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 pb-10">
       {/* Welcome Bar */}
-      <div className="flex justify-between items-center bg-zinc-900/40 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
+      <div className="flex justify-between items-center card-surface p-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white font-sketch">Today's Overview</h2>
-          <p className="text-zinc-500 text-sm mt-1">
-            Welcome back, <span className="text-white font-semibold">{user?.name}</span>. Here is what's happening in the system today.
+          <h2 className="text-xl font-bold tracking-tight text-foreground">Today's Overview</h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Welcome back, <span className="text-foreground font-semibold">{user?.name}</span>. Here is what's happening in the system today.
           </p>
         </div>
-        <div className="hidden sm:flex items-center gap-2 bg-zinc-800/40 border border-white/10 px-4 py-2 rounded-xl text-xs font-semibold text-zinc-300">
-          <Clock size={14} className="text-accent-green" />
+        <div className="hidden sm:flex items-center gap-2 bg-muted/40 border border-border px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground">
+          <Clock size={14} className="text-primary animate-pulse" />
           <span>System active · Live Sync</span>
         </div>
       </div>
@@ -108,103 +117,103 @@ export const Dashboard: React.FC = () => {
       {metrics.overdueCount > 0 && (
         <div 
           onClick={() => navigate('/allocations?status=active')}
-          className="p-4 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red flex items-center justify-between cursor-pointer hover:bg-accent-red/15 transition-all shadow-[0_0_15px_rgba(239,68,68,0.05)]"
+          className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-between cursor-pointer hover:bg-destructive/15 transition-all shadow-sm"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-accent-red/10 flex items-center justify-center text-accent-red animate-pulse">
+            <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive animate-pulse">
               <AlertOctagon size={18} />
             </div>
             <div>
               <h4 className="text-sm font-bold">Overdue Return Warning</h4>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                There are <span className="text-accent-red font-bold">{metrics.overdueCount} assets</span> overdue for expected return. Click to review allocation list.
+              <p className="text-xs text-muted-foreground mt-0.5">
+                There are <span className="text-destructive font-bold">{metrics.overdueCount} assets</span> overdue for expected return. Click to review allocation list.
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-zinc-400 hover:text-white transition-all flex items-center gap-1">
+          <span className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-all flex items-center gap-1">
             Resolve list &rarr;
           </span>
         </div>
       )}
 
-      {/* Metric Cards Grid (2 rows x 3 columns) */}
+      {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Total Assets */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Total Assets Registered</p>
-              <h3 className="text-3xl font-bold text-white mt-2 tracking-tight">{metrics.totalAssets}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Assets Registered</p>
+              <h3 className="text-3xl font-extrabold text-foreground mt-2 tracking-tight">{metrics.totalAssets}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-zinc-400 group-hover:text-white transition-all">
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-muted-foreground group-hover:text-foreground transition-all">
               <Boxes size={20} />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-border to-transparent"></div>
         </div>
 
         {/* Available Assets */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Available Assets</p>
-              <h3 className="text-3xl font-bold text-accent-green mt-2 tracking-tight">{metrics.availableAssets}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Available Assets</p>
+              <h3 className="text-3xl font-extrabold text-success mt-2 tracking-tight">{metrics.availableAssets}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-accent-green/10 border border-accent-green/20 text-accent-green">
+            <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-success">
               <CheckCircle2 size={20} />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-green/20 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-success/20 to-transparent"></div>
         </div>
 
         {/* Allocated Assets */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Allocated Assets</p>
-              <h3 className="text-3xl font-bold text-accent-blue mt-2 tracking-tight">{metrics.allocatedAssets}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Allocated Assets</p>
+              <h3 className="text-3xl font-extrabold text-info mt-2 tracking-tight">{metrics.allocatedAssets}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-accent-blue/10 border border-accent-blue/20 text-accent-blue">
+            <div className="p-3 rounded-xl bg-info/10 border border-info/20 text-info">
               <Boxes size={20} />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-blue/20 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-info/20 to-transparent"></div>
         </div>
 
         {/* Active Bookings */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Bookings Today</p>
-              <h3 className="text-3xl font-bold text-white mt-2 tracking-tight">{metrics.activeBookings}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Bookings Today</p>
+              <h3 className="text-3xl font-extrabold text-foreground mt-2 tracking-tight">{metrics.activeBookings}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-zinc-400 group-hover:text-white transition-all">
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-muted-foreground group-hover:text-foreground transition-all">
               <CalendarCheck2 size={20} />
             </div>
           </div>
         </div>
 
         {/* Pending Transfers */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Pending Transfers</p>
-              <h3 className="text-3xl font-bold text-accent-amber mt-2 tracking-tight">{metrics.pendingTransfers}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Pending Transfers</p>
+              <h3 className="text-3xl font-extrabold text-warning mt-2 tracking-tight">{metrics.pendingTransfers}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-accent-amber/10 border border-accent-amber/20 text-accent-amber">
+            <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-warning">
               <ArrowRightLeft size={20} />
             </div>
           </div>
         </div>
 
         {/* Under Maintenance */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Open Maintenance</p>
-              <h3 className="text-3xl font-bold text-accent-red mt-2 tracking-tight">{metrics.maintenanceTickets}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Open Maintenance</p>
+              <h3 className="text-3xl font-extrabold text-destructive mt-2 tracking-tight">{metrics.maintenanceTickets}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red">
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
               <Wrench size={20} />
             </div>
           </div>
@@ -212,31 +221,31 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Action Row */}
-      <div className="p-5 rounded-2xl bg-zinc-900/20 border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-muted/20 border border-border flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h4 className="text-sm font-semibold text-white">System Actions Quick-Access</h4>
-          <p className="text-xs text-zinc-500">Jump directly to task modules.</p>
+          <h4 className="text-sm font-semibold text-foreground">System Actions Quick-Access</h4>
+          <p className="text-xs text-muted-foreground">Jump directly to task modules.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           {['Admin', 'AssetManager'].includes(user?.role || '') && (
             <button 
               onClick={() => handleQuickAction('register')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-accent-green text-zinc-950 text-xs font-bold rounded-xl cursor-pointer hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl cursor-pointer hover:bg-primary/90 shadow-sm active:scale-95 transition-all"
             >
               <PlusCircle size={14} />
               <span>Register Asset</span>
             </button>
           )}
           <button 
-            onClick={() => handleQuickAction('book')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold rounded-xl border border-white/10 hover:border-white/20 cursor-pointer active:scale-95 transition-all"
+              onClick={() => handleQuickAction('book')}
+              className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-muted text-xs font-bold rounded-xl border border-border cursor-pointer active:scale-95 transition-all"
           >
             <CalendarDays size={14} />
             <span>Book Resource</span>
           </button>
           <button 
-            onClick={() => handleQuickAction('raise')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold rounded-xl border border-white/10 hover:border-white/20 cursor-pointer active:scale-95 transition-all"
+              onClick={() => handleQuickAction('raise')}
+              className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-muted text-xs font-bold rounded-xl border border-border cursor-pointer active:scale-95 transition-all"
           >
             <AlertTriangle size={14} />
             <span>Raise Request</span>
@@ -247,18 +256,18 @@ export const Dashboard: React.FC = () => {
       {/* Charts & Activity Feed Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status Distribution Donut Chart */}
-        <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+        <div className="card-surface p-6 flex flex-col justify-between">
           <div>
-            <h4 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <Activity size={18} className="text-accent-green" />
+            <h4 className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+              <Activity size={18} className="text-primary" />
               <span>Asset Status Distribution</span>
             </h4>
-            <p className="text-zinc-500 text-xs mt-0.5">Real-time inventory classification breakdown</p>
+            <p className="text-muted-foreground text-xs mt-0.5">Real-time inventory classification breakdown</p>
           </div>
 
           <div className="h-64 mt-4 w-full flex items-center justify-center">
             {chartData.length === 0 ? (
-              <div className="text-zinc-500 text-xs font-sketch">No assets registered in database</div>
+              <div className="text-muted-foreground text-xs">No assets registered in database</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -276,8 +285,8 @@ export const Dashboard: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#18181B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff' }}
+                    contentStyle={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '12px' }}
+                    labelStyle={{ color: 'var(--color-foreground)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -285,54 +294,54 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Legend */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-white/5 pt-4 mt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-border pt-4 mt-2">
             {[
-              { name: 'Available', color: 'bg-[#10B981]', count: metrics.availableAssets },
-              { name: 'Allocated', color: 'bg-[#3B82F6]', count: metrics.allocatedAssets },
-              { name: 'Maintenance', color: 'bg-[#F59E0B]', count: metrics.maintenanceTickets },
-              { name: 'Total', color: 'bg-zinc-600', count: metrics.totalAssets }
+              { name: 'Available', color: 'bg-success', count: metrics.availableAssets },
+              { name: 'Allocated', color: 'bg-info', count: metrics.allocatedAssets },
+              { name: 'Maintenance', color: 'bg-warning', count: metrics.maintenanceTickets },
+              { name: 'Total', color: 'bg-muted-foreground', count: metrics.totalAssets }
             ].map(item => (
-              <div key={item.name} className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/5">
-                <div className="flex items-center justify-center gap-1.5 text-zinc-400 text-[10px] uppercase font-bold tracking-wider">
+              <div key={item.name} className="text-center p-2 rounded-xl bg-muted/10 border border-border">
+                <div className="flex items-center justify-center gap-1.5 text-muted-foreground text-[9px] uppercase font-bold tracking-wider">
                   <span className={`w-2 h-2 rounded-full ${item.color}`}></span>
                   <span>{item.name}</span>
                 </div>
-                <div className="text-base font-bold text-white mt-0.5">{item.count}</div>
+                <div className="text-base font-bold text-foreground mt-0.5">{item.count}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Recent Activity Log */}
-        <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+        <div className="card-surface p-6 flex flex-col justify-between">
           <div>
-            <h4 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <History size={18} className="text-accent-green" />
+            <h4 className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+              <History size={18} className="text-primary" />
               <span>Recent Activity Feed</span>
             </h4>
-            <p className="text-zinc-500 text-xs mt-0.5">Last 10 corporate registry updates</p>
+            <p className="text-muted-foreground text-xs mt-0.5">Last 10 corporate registry updates</p>
           </div>
 
           <div className="space-y-3 mt-5 flex-1 overflow-y-auto max-h-72 pr-1">
             {activityFeed.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-zinc-500 text-xs font-sketch py-10">
+              <div className="h-full flex items-center justify-center text-muted-foreground text-xs py-10">
                 No activity logs recorded yet.
               </div>
             ) : (
               activityFeed.map((event) => (
                 <div 
                   key={event.id}
-                  className="flex items-start justify-between gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all"
+                  className="flex items-start justify-between gap-3 p-3 rounded-xl bg-muted/10 border border-border hover:bg-muted/20 transition-all"
                 >
                   <div>
-                    <p className="text-xs text-zinc-200 font-medium leading-relaxed">
+                    <p className="text-xs text-foreground font-medium leading-relaxed">
                       {event.detail}
                     </p>
-                    <span className="text-[10px] text-zinc-500 font-semibold block mt-1 uppercase tracking-wider">
+                    <span className="text-[10px] text-muted-foreground font-semibold block mt-1 uppercase tracking-wider">
                       actor: {event.actor}
                     </span>
                   </div>
-                  <span className="text-[9px] text-zinc-500 shrink-0 font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded">
+                  <span className="text-[9px] text-muted-foreground shrink-0 font-bold bg-muted/20 border border-border px-2 py-0.5 rounded">
                     {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>

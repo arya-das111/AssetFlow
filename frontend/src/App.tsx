@@ -30,7 +30,7 @@ const queryClient = new QueryClient({
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-canvas p-4 flex gap-6">
+    <div className="min-h-screen bg-background p-4 flex gap-6 text-foreground">
       <Sidebar />
       <main className="flex-1 overflow-y-auto max-h-[calc(100vh-2rem)] pr-2">
         {children}

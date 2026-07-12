@@ -161,7 +161,7 @@ export const ResourceBooking: React.FC = () => {
     setBookingDate(todayStr);
   };
 
-  // Weekdays calculation based on selectedDate (Monday to Friday)
+  // Build the 7-day week based on selectedDate
   const getMonday = (d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
@@ -170,12 +170,14 @@ export const ResourceBooking: React.FC = () => {
   };
 
   const getWeekDays = () => {
-    const startOfWeek = getMonday(new Date(selectedDate));
-    return Array.from({ length: 7 }).map((_, idx) => {
-      const day = new Date(startOfWeek);
-      day.setDate(startOfWeek.getDate() + idx);
-      return day;
-    });
+    const monday = getMonday(new Date(selectedDate));
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      days.push(day);
+    }
+    return days;
   };
 
   const weekDays = getWeekDays();
@@ -219,7 +221,7 @@ export const ResourceBooking: React.FC = () => {
     setSuccessMsg('');
 
     if (candConflict.isOverlap) {
-      setErrorMsg(candConflict.error || 'Cannot book overlapping slots.');
+      setErrorMsg(candConflict.error);
       return;
     }
 
@@ -240,13 +242,26 @@ export const ResourceBooking: React.FC = () => {
 
       const data = await res.json();
       if (res.ok) {
-        setSuccessMsg('Booking confirmed successfully!');
+        setSuccessMsg(`Successfully booked! Reference ID: #${data.id}`);
+        setErrorMsg('');
+        
+        // Auto-advance candidate slot to next hour to avoid immediate conflict on same slot
+        const endHour = Number(candEnd.split(':')[0]);
+        if (endHour < 18) {
+          const nextStart = `${String(endHour).padStart(2, '0')}:00`;
+          const nextEnd = `${String(endHour + 1).padStart(2, '0')}:00`;
+          setCandStart(nextStart);
+          setCandEnd(nextEnd);
+        }
+        
         fetchBookings();
       } else {
-        setErrorMsg(data.error || 'Failed to complete booking.');
+        setErrorMsg(data.error || 'Overlap checking failed.');
+        setSuccessMsg('');
       }
     } catch (err) {
-      setErrorMsg('Server connection failed.');
+      console.error(err);
+      setErrorMsg('Network error requesting slot allocation.');
     }
   };
 
@@ -284,7 +299,6 @@ export const ResourceBooking: React.FC = () => {
     const sHour = sTime.getHours() + sTime.getMinutes() / 60;
     const eHour = eTime.getHours() + eTime.getMinutes() / 60;
 
-    // Start of timeline is 08:00, span is 10 hours
     const top = ((sHour - 8) / 10) * 100;
     const height = ((eHour - sHour) / 10) * 100;
 
@@ -297,10 +311,10 @@ export const ResourceBooking: React.FC = () => {
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 bg-zinc-900/40 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 card-surface p-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white font-sketch font-bold">Resource Booking Desk</h2>
-          <p className="text-zinc-500 text-sm mt-1">
+          <h2 className="text-xl font-bold tracking-tight text-foreground">Resource Booking Desk</h2>
+          <p className="text-muted-foreground text-sm mt-1">
             Book corporate rooms, vehicles, and projectors. Overlap checks block conflicting requests in real-time.
           </p>
         </div>
@@ -308,11 +322,15 @@ export const ResourceBooking: React.FC = () => {
         {/* Date and Resource selectors */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <Calendar size={14} className="absolute left-3.5 top-3 text-zinc-500" />
+            <Calendar size={14} className="absolute left-3.5 top-3 text-muted-foreground" />
             <select
               value={selectedResourceId}
-              onChange={(e) => setSelectedResourceId(Number(e.target.value))}
-              className="bg-zinc-800 text-zinc-300 text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:border-accent-green/50 outline-none cursor-pointer"
+              onChange={(e) => {
+                setSelectedResourceId(Number(e.target.value));
+                setSuccessMsg('');
+                setErrorMsg('');
+              }}
+              className="bg-muted/40 text-foreground text-xs pl-10 pr-4 py-2.5 rounded-xl border border-border focus:border-primary/50 outline-none cursor-pointer"
             >
               {resources.map(r => (
                 <option key={r.id} value={r.id}>{r.name} ({r.assetCode})</option>
@@ -320,23 +338,23 @@ export const ResourceBooking: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-1 bg-zinc-800 border border-white/10 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-muted/40 border border-border rounded-xl p-1">
             <button
               onClick={handlePrevWeek}
-              className="p-1.5 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-muted/60 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Previous Week"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={handleToday}
-              className="px-2.5 py-1 text-[10px] font-bold bg-zinc-900 text-zinc-200 hover:text-white rounded-lg transition-colors cursor-pointer"
+              className="px-2.5 py-1 text-[10px] font-bold bg-background text-foreground hover:bg-muted/20 rounded-lg transition-colors cursor-pointer"
             >
               Today
             </button>
             <button
               onClick={handleNextWeek}
-              className="p-1.5 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-muted/60 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Next Week"
             >
               <ChevronRight size={16} />
@@ -346,47 +364,45 @@ export const ResourceBooking: React.FC = () => {
       </div>
 
       {successMsg && (
-        <div className="p-4 rounded-xl bg-accent-green/10 border border-accent-green/20 text-accent-green text-sm flex items-center gap-2.5">
+        <div className="p-4 rounded-xl bg-success/10 border border-success/20 text-success text-sm flex items-center gap-2.5">
           <CheckCircle size={18} />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-sm flex items-center gap-2.5">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2.5">
           <AlertCircle size={18} />
           <span>{errorMsg}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* ⭐ INTERACTIVE WEEK SCHEDULER VIEW */}
-        <div className="xl:col-span-3 glass-panel p-6 rounded-2xl flex flex-col justify-between">
+        {/* Weekly Scheduler grid */}
+        <div className="xl:col-span-3 card-surface p-6 flex flex-col justify-between">
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-white/5 pb-3">
-              <h3 className="text-base font-bold text-white tracking-tight uppercase font-sketch">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-border pb-3">
+              <h3 className="text-base font-bold text-foreground tracking-tight uppercase">
                 Weekly Scheduler
               </h3>
-              <span className="text-xs font-mono font-bold text-accent-green bg-accent-green/5 border border-accent-green/10 px-3 py-1 rounded-lg">
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-lg">
                 {startOfWeekStr} – {endOfWeekStr}
               </span>
             </div>
 
             {/* Weekdays columns headers row */}
             <div className="flex gap-4 mb-2 text-center">
-              {/* Hour spacer */}
               <div className="w-14 pr-2"></div>
               
-              {/* Day Headers Grid */}
               <div className="flex-1 grid grid-cols-7">
                 {weekDays.map((dayDate, idx) => {
                   const isSelectedDay = dayDate.toDateString() === new Date(bookingDate).toDateString();
                   return (
                     <div key={idx} className="py-1">
-                      <span className={`block text-[11px] font-bold uppercase ${isSelectedDay ? 'text-accent-green' : 'text-zinc-400'}`}>
+                      <span className={`block text-[11px] font-bold uppercase ${isSelectedDay ? 'text-primary' : 'text-muted-foreground'}`}>
                         {dayDate.toLocaleDateString(undefined, { weekday: 'short' })}
                       </span>
-                      <span className={`block text-[9px] mt-0.5 font-mono ${isSelectedDay ? 'text-accent-green font-bold' : 'text-zinc-500'}`}>
+                      <span className={`block text-[9px] mt-0.5 font-mono ${isSelectedDay ? 'text-primary font-bold' : 'text-muted-foreground/60'}`}>
                         {dayDate.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
                       </span>
                     </div>
@@ -395,22 +411,22 @@ export const ResourceBooking: React.FC = () => {
               </div>
             </div>
 
-            {/* Grid container with hours and day columns */}
-            <div className="relative border border-white/10 rounded-2xl bg-zinc-950/40 p-4 h-[500px] flex gap-4 select-none">
+            {/* Grid container */}
+            <div className="relative border border-border rounded-2xl bg-muted/10 p-4 h-[500px] flex gap-4 select-none">
               
               {/* Hours Grid Labels */}
-              <div className="w-14 flex flex-col justify-between text-[10px] font-bold text-zinc-500 font-mono pr-2 border-r border-white/5 py-1">
+              <div className="w-14 flex flex-col justify-between text-[10px] font-bold text-muted-foreground/60 font-mono pr-2 border-r border-border py-1">
                 {timeSlots.map(time => (
                   <div key={time} className="h-6 flex items-center">{time}</div>
                 ))}
               </div>
 
               {/* 7 Column Grid Area */}
-              <div className="flex-1 grid grid-cols-7 relative py-4">
+              <div className="flex-1 grid grid-cols-7 relative py-1">
                 {/* Horizontal grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-1">
                   {timeSlots.map(time => (
-                    <div key={`line-${time}`} className="border-b border-white/5 w-full h-0"></div>
+                    <div key={`line-${time}`} className="border-b border-border/50 w-full h-0"></div>
                   ))}
                 </div>
 
@@ -419,39 +435,44 @@ export const ResourceBooking: React.FC = () => {
                   const dayStr = dayDate.toDateString();
                   const isBookingDay = new Date(bookingDate).toDateString() === dayStr;
 
-                  // filter bookings for this day
                   const dayBookings = bookings.filter(b => {
                     return b.resourceId === Number(selectedResourceId) && new Date(b.startTime).toDateString() === dayStr;
                   });
 
                   return (
-                    <div key={dayIdx} className="relative h-full border-r border-white/5 last:border-r-0">
+                    <div key={dayIdx} className="relative h-full border-r border-border last:border-r-0">
                       {loading ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/5 pointer-events-none">
-                          <div className="w-4 h-4 border-2 border-accent-green border-t-transparent rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/5 pointer-events-none">
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                         </div>
                       ) : (
                         <>
                           {/* Render confirmed day bookings */}
                           {dayBookings.map(b => {
                             const pos = getSlotPosition(b.startTime, b.endTime);
+                            const s = new Date(b.startTime);
+                            const e = new Date(b.endTime);
+                            const durationHours = (e.getTime() - s.getTime()) / (1000 * 60 * 60);
+                            const showBadge = durationHours > 1;
                             return (
                               <div
                                 key={b.id}
-                                style={{ top: pos.top, height: pos.height }}
-                                className="absolute left-1 right-1 rounded-xl bg-accent-blue/80 border border-blue-500/35 p-2 flex flex-col justify-between text-white shadow-lg overflow-hidden hover:z-10 transition-all hover:bg-blue-600/95 duration-200"
+                                style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
+                                className="absolute rounded-xl bg-info/80 border border-info p-1.5 flex flex-col justify-between text-white shadow-md overflow-hidden hover:z-10 transition-all hover:bg-info duration-200"
                               >
                                 <div className="overflow-hidden">
-                                  <span className="text-[8px] font-bold tracking-wide uppercase bg-blue-600/30 px-1.5 py-0.5 rounded border border-blue-400/25">
-                                    Booked
-                                  </span>
-                                  <h5 className="text-[9px] font-bold mt-1 truncate leading-tight">{b.bookedBy.name}</h5>
+                                  {showBadge && (
+                                    <span className="inline-flex items-center justify-center text-[9px] font-bold tracking-wide uppercase bg-black/20 px-1.5 py-0.5 rounded border border-white/20 leading-none mb-1">
+                                      Booked
+                                    </span>
+                                  )}
+                                  <h5 className="text-[10px] font-bold truncate leading-tight">
+                                    {b.bookedBy.name.split('(')[0].trim()}
+                                  </h5>
                                 </div>
-                                <div className="flex justify-between items-center text-[8px] text-blue-200 font-mono mt-1">
+                                <div className="flex justify-between items-center text-[9px] text-white/90 font-semibold font-mono mt-1">
                                   <span>
                                     {(() => {
-                                      const s = new Date(b.startTime);
-                                      const e = new Date(b.endTime);
                                       const pad = (n: number) => String(n).padStart(2, '0');
                                       return `${pad(s.getHours())}:${pad(s.getMinutes())} – ${pad(e.getHours())}:${pad(e.getMinutes())}`;
                                     })()}
@@ -459,7 +480,7 @@ export const ResourceBooking: React.FC = () => {
                                   {(b.bookedBy.id === user?.id || user?.role === 'Admin') && (
                                     <button 
                                       onClick={() => handleCancelBooking(b.id)}
-                                      className="text-zinc-300 hover:text-accent-red p-0.5 rounded bg-zinc-950/30 hover:bg-zinc-950/50 cursor-pointer"
+                                      className="text-white/80 hover:text-white p-0.5 rounded bg-black/10 hover:bg-black/30 cursor-pointer"
                                     >
                                       <Trash2 size={10} />
                                     </button>
@@ -469,7 +490,7 @@ export const ResourceBooking: React.FC = () => {
                             );
                           })}
 
-                          {/* Render candidate preview block if this column is the selected bookingDate */}
+                          {/* Render candidate preview block */}
                           {isBookingDay && (
                             !candConflict.isOverlap ? (
                               (() => {
@@ -478,13 +499,13 @@ export const ResourceBooking: React.FC = () => {
                                 const pos = getSlotPosition(candS, candE);
                                 return (
                                   <div
-                                    style={{ top: pos.top, height: pos.height }}
-                                    className="absolute left-1 right-1 rounded-xl border-2 border-dashed border-accent-green/60 bg-accent-green/5 p-2 flex flex-col justify-between text-accent-green pointer-events-none z-10 animate-in fade-in"
+                                    style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
+                                    className="absolute rounded-xl border-2 border-dashed border-primary bg-primary/10 p-1 flex flex-col justify-center items-center gap-0.5 text-primary pointer-events-none z-10 animate-in fade-in"
                                   >
-                                    <span className="text-[8px] font-bold uppercase tracking-wider bg-accent-green/10 border border-accent-green/20 px-1.5 py-0.5 rounded w-fit">
+                                    <span className="inline-flex items-center justify-center text-[9px] font-bold uppercase tracking-wider bg-primary/20 border border-primary/30 px-2 py-0.5 rounded leading-none">
                                       Request
                                     </span>
-                                    <span className="text-[8px] font-bold font-mono">
+                                    <span className="text-[10px] font-semibold font-mono leading-none mt-0.5">
                                       {candStart} - {candEnd}
                                     </span>
                                   </div>
@@ -497,16 +518,9 @@ export const ResourceBooking: React.FC = () => {
                                 const pos = getSlotPosition(candS, candE);
                                 return (
                                   <div
-                                    style={{ top: pos.top, height: pos.height }}
-                                    className="absolute left-1 right-1 rounded-xl border-2 border-dashed border-accent-red/60 bg-accent-red/5 p-2 flex flex-col justify-between text-accent-red pointer-events-none z-10 animate-in fade-in"
-                                  >
-                                    <span className="text-[8px] font-bold uppercase tracking-wider bg-accent-red/10 border border-accent-red/20 px-1.5 py-0.5 rounded w-fit">
-                                      Conflict
-                                    </span>
-                                    <span className="text-[8px] font-bold font-mono text-accent-red">
-                                      {candStart} - {candEnd}
-                                    </span>
-                                  </div>
+                                    style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
+                                    className="absolute rounded-xl border-2 border-dashed border-destructive bg-destructive/10 pointer-events-none z-10 animate-in fade-in"
+                                  />
                                 );
                               })()
                             )
@@ -522,31 +536,31 @@ export const ResourceBooking: React.FC = () => {
         </div>
 
         {/* BOOKING CONTROLS CARD */}
-        <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+        <div className="card-surface p-6 flex flex-col justify-between">
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight uppercase mb-4 font-sketch">Book Time Slot</h3>
+            <h3 className="text-base font-bold text-foreground tracking-tight uppercase mb-4">Book Time Slot</h3>
             
             <form onSubmit={handleBookSlot} className="space-y-4">
               {/* Custom Monthly Calendar Date Picker */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Select Date</label>
-                <div className="bg-zinc-900/60 p-4 rounded-xl border border-white/10">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Select Date</label>
+                <div className="bg-muted/20 p-4 rounded-xl border border-border">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-bold text-zinc-300">
+                    <span className="text-xs font-bold text-foreground">
                       {new Date(calYear, calMonth).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                     </span>
                     <div className="flex gap-1.5">
                       <button
                         type="button"
                         onClick={handlePrevMonth}
-                        className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        className="p-1 hover:bg-muted/40 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
                         <ChevronLeft size={13} />
                       </button>
                       <button
                         type="button"
                         onClick={handleNextMonth}
-                        className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        className="p-1 hover:bg-muted/40 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
                         <ChevronRight size={13} />
                       </button>
@@ -554,7 +568,7 @@ export const ResourceBooking: React.FC = () => {
                   </div>
 
                   {/* Day Labels */}
-                  <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-zinc-500 mb-1.5">
+                  <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-muted-foreground mb-1.5">
                     <span>Mo</span>
                     <span>Tu</span>
                     <span>We</span>
@@ -581,8 +595,8 @@ export const ResourceBooking: React.FC = () => {
                           onClick={() => handleBookingDateChange(cellDateStr)}
                           className={`py-1 rounded font-bold font-mono transition-all cursor-pointer ${
                             isSelected 
-                              ? 'bg-accent-green text-zinc-950 shadow shadow-accent-green/20' 
-                              : 'hover:bg-zinc-800 text-zinc-300 hover:text-white'
+                              ? 'bg-primary text-primary-foreground shadow' 
+                              : 'hover:bg-muted text-foreground hover:text-foreground'
                           }`}
                         >
                           {dayNum}
@@ -595,13 +609,26 @@ export const ResourceBooking: React.FC = () => {
 
               {/* Start hour dropdown */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Start Time</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Start Time</label>
                 <div className="relative">
-                  <Clock size={14} className="absolute left-3 top-3.5 text-zinc-500" />
+                  <Clock size={14} className="absolute left-3 top-3.5 text-muted-foreground" />
                   <select
                     value={candStart}
-                    onChange={(e) => setCandStart(e.target.value)}
-                    className="w-full bg-zinc-900 text-white text-xs pl-9 pr-4 py-3 rounded-xl border border-white/10 outline-none cursor-pointer"
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      setCandStart(newStart);
+                      setSuccessMsg('');
+                      setErrorMsg('');
+                      
+                      // Auto-update end time if it is now invalid (<= start time)
+                      const startHour = Number(newStart.split(':')[0]);
+                      const endHour = Number(candEnd.split(':')[0]);
+                      if (endHour <= startHour) {
+                        const nextEnd = `${String(startHour + 1).padStart(2, '0')}:00`;
+                        setCandEnd(nextEnd);
+                      }
+                    }}
+                    className="w-full bg-muted/40 text-foreground text-xs pl-9 pr-4 py-3 rounded-xl border border-border outline-none cursor-pointer"
                   >
                     {timeSlots.slice(0, -1).map(time => (
                       <option key={`start-${time}`} value={time}>{time}</option>
@@ -612,13 +639,17 @@ export const ResourceBooking: React.FC = () => {
 
               {/* End hour dropdown */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">End Time</label>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">End Time</label>
                 <div className="relative">
-                  <Clock size={14} className="absolute left-3 top-3.5 text-zinc-500" />
+                  <Clock size={14} className="absolute left-3 top-3.5 text-muted-foreground" />
                   <select
                     value={candEnd}
-                    onChange={(e) => setCandEnd(e.target.value)}
-                    className="w-full bg-zinc-900 text-white text-xs pl-9 pr-4 py-3 rounded-xl border border-white/10 outline-none cursor-pointer"
+                    onChange={(e) => {
+                      setCandEnd(e.target.value);
+                      setSuccessMsg('');
+                      setErrorMsg('');
+                    }}
+                    className="w-full bg-muted/40 text-foreground text-xs pl-9 pr-4 py-3 rounded-xl border border-border outline-none cursor-pointer"
                   >
                     {timeSlots.filter(t => t > candStart).map(time => (
                       <option key={`end-${time}`} value={time}>{time}</option>
@@ -628,7 +659,7 @@ export const ResourceBooking: React.FC = () => {
               </div>
 
               {candConflict.isOverlap && (
-                <div className="p-3.5 rounded-xl border border-accent-red/20 bg-accent-red/10 text-accent-red text-xs leading-relaxed">
+                <div className="p-3.5 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive text-xs leading-relaxed">
                   ⚠️ <b>Overlap Conflict:</b> {candConflict.error}
                 </div>
               )}
@@ -636,15 +667,15 @@ export const ResourceBooking: React.FC = () => {
               <button
                 type="submit"
                 disabled={candConflict.isOverlap}
-                className="w-full bg-accent-green disabled:opacity-30 disabled:cursor-not-allowed text-zinc-950 font-bold py-3.5 px-4 rounded-xl cursor-pointer hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all text-xs"
+                className="w-full bg-primary disabled:opacity-30 disabled:cursor-not-allowed text-primary-foreground font-bold py-3.5 px-4 rounded-xl cursor-pointer hover:bg-primary/90 transition-all text-xs"
               >
                 Confirm Resource Booking
               </button>
             </form>
           </div>
 
-          <div className="mt-6 border-t border-white/5 pt-4 text-[10px] text-zinc-500 leading-relaxed">
-            <span className="text-white font-bold block mb-1">Duration Rules</span>
+          <div className="mt-6 border-t border-border pt-4 text-[10px] text-muted-foreground leading-relaxed">
+            <span className="text-foreground font-bold block mb-1">Duration Rules</span>
             All bookings must start and resolve within same workday (08:00 - 18:00). Validations execute atomically on database write.
           </div>
         </div>

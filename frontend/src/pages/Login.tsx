@@ -67,23 +67,19 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
-      {/* Background neon glows */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-accent-green/5 blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-accent-blue/5 blur-3xl pointer-events-none"></div>
-
-      <div className="w-full max-w-md glass-panel rounded-2xl p-8 bg-zinc-950/40 relative z-10 border-white/5 shadow-2xl">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+      <div className="w-full max-w-md card-surface p-8 relative z-10">
         {/* Logo AF */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-accent-green/10 border border-accent-green/45 flex items-center justify-center font-sketch text-3xl font-bold text-accent-green shadow-[0_0_20px_rgba(16,185,129,0.25)] mb-3">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary flex items-center justify-center text-3xl font-extrabold text-primary shadow-[0_0_20px_rgba(var(--primary),0.15)] mb-3">
             AF
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight font-sketch">AssetFlow Authentication</h2>
-          <p className="text-xs text-zinc-500 font-medium mt-1 font-sans">Enterprise Resource Directory</p>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">AssetFlow Authentication</h2>
+          <p className="text-xs text-muted-foreground font-medium mt-1">Enterprise Resource Directory</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-sm flex items-start gap-2.5">
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-2.5">
             <AlertCircle size={18} className="shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -91,44 +87,44 @@ export const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Email Address
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-4 top-3.5 text-zinc-500" />
+              <Mail size={16} className="absolute left-4 top-3.5 text-muted-foreground/60" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
-                className="w-full bg-white/5 hover:bg-white/8 focus:bg-white/10 text-white pl-11 pr-4 py-3 rounded-xl border border-white/10 focus:border-accent-green/50 outline-none text-sm transition-all placeholder-zinc-500"
+                className="w-full bg-muted/40 text-foreground pl-11 pr-4 py-3 rounded-xl border border-border focus:border-primary/50 outline-none text-sm transition-all placeholder-muted-foreground/50"
               />
             </div>
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Account Password
               </label>
               <button
                 type="button"
                 onClick={() => setShowForgot(!showForgot)}
-                className="text-xs font-medium text-accent-green hover:underline cursor-pointer"
+                className="text-xs font-medium text-primary hover:underline cursor-pointer"
               >
                 Forgot?
               </button>
             </div>
             <div className="relative">
-              <KeyRound size={16} className="absolute left-4 top-3.5 text-zinc-500" />
+              <KeyRound size={16} className="absolute left-4 top-3.5 text-muted-foreground/60" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-white/5 hover:bg-white/8 focus:bg-white/10 text-white pl-11 pr-4 py-3 rounded-xl border border-white/10 focus:border-accent-green/50 outline-none text-sm transition-all placeholder-zinc-500"
+                className="w-full bg-muted/40 text-foreground pl-11 pr-4 py-3 rounded-xl border border-border focus:border-primary/50 outline-none text-sm transition-all placeholder-muted-foreground/50"
               />
             </div>
           </div>
@@ -136,53 +132,53 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-accent-green text-zinc-950 font-bold py-3.5 px-4 rounded-xl cursor-pointer hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] active:scale-[0.98] transition-all text-sm disabled:opacity-50"
+            className="w-full bg-primary text-primary-foreground font-bold py-3.5 px-4 rounded-xl cursor-pointer hover:bg-primary/90 transition-all text-sm disabled:opacity-50"
           >
             {loading ? 'Logging in session...' : 'Access Dashboard'}
           </button>
         </form>
 
         {showForgot && (
-          <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">Demo Password Recovery</h4>
+          <div className="mt-6 p-4 rounded-xl bg-muted/20 border border-border animate-in fade-in">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Demo Password Recovery</h4>
             <form onSubmit={handleForgotPassword} className="flex gap-2">
               <input
                 type="email"
                 placeholder="recovery@company.com"
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
-                className="flex-1 bg-white/5 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none"
+                className="flex-1 bg-muted/40 text-foreground text-xs px-3 py-2 rounded-lg border border-border outline-none"
               />
-              <button type="submit" className="bg-accent-green/20 text-accent-green hover:bg-accent-green/30 px-3 py-2 rounded-lg text-xs font-bold border border-accent-green/30">
+              <button type="submit" className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-lg text-xs font-bold border border-primary/20 cursor-pointer">
                 Mock Code
               </button>
             </form>
             {forgotMsg && (
-              <p className="mt-3 text-[11px] font-sketch text-accent-green leading-relaxed border-t border-white/5 pt-2">
+              <p className="mt-3 text-[11px] text-primary leading-relaxed border-t border-border pt-2">
                 {forgotMsg}
               </p>
             )}
           </div>
         )}
 
-        <div className="my-6 border-t border-white/10"></div>
+        <div className="my-6 border-t border-border"></div>
 
         <div className="text-center">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             New to the portal?{' '}
-            <Link to="/signup" className="text-accent-green hover:underline font-semibold">
+            <Link to="/signup" className="text-primary hover:underline font-semibold">
               Create employee account
             </Link>
           </p>
-          <div className="mt-4 p-3.5 rounded-xl border border-dashed border-white/10 bg-white/[0.02] text-[11px] text-zinc-500 leading-relaxed text-left">
-            <div className="flex items-center gap-1 text-white font-semibold mb-1">
-              <Sparkles size={12} className="text-accent-green" />
+          <div className="mt-4 p-3.5 rounded-xl border border-dashed border-border bg-muted/10 text-[11px] text-muted-foreground leading-relaxed text-left">
+            <div className="flex items-center gap-1 text-foreground font-semibold mb-1">
+              <Sparkles size={12} className="text-primary" />
               <span>Demo Login Accounts (Password: 2006)</span>
             </div>
-            Admin: <span className="text-white">admin@assetflow.com</span><br />
-            Asset Manager: <span className="text-white">manager@assetflow.com</span><br />
-            Dept Head: <span className="text-white">head@assetflow.com</span><br />
-            Employee: <span className="text-white">employee@assetflow.com</span>
+            Admin: <span className="text-foreground">admin@assetflow.com</span><br />
+            Asset Manager: <span className="text-foreground">manager@assetflow.com</span><br />
+            Dept Head: <span className="text-foreground">head@assetflow.com</span><br />
+            Employee: <span className="text-foreground">employee@assetflow.com</span>
           </div>
         </div>
       </div>

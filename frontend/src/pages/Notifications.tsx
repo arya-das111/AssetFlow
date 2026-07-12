@@ -53,7 +53,6 @@ export const Notifications: React.FC = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        // Optimistically update
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
       }
     } catch (err) {
@@ -78,15 +77,14 @@ export const Notifications: React.FC = () => {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'alert': return <AlertTriangle className="text-accent-red shrink-0" size={16} />;
-      case 'booking': return <CalendarDays className="text-accent-blue shrink-0" size={16} />;
-      case 'maintenance': return <Wrench className="text-accent-amber shrink-0" size={16} />;
-      case 'transfer': return <Shuffle className="text-accent-blue shrink-0" size={16} />;
-      default: return <Info className="text-accent-green shrink-0" size={16} />;
+      case 'alert': return <AlertTriangle className="text-destructive shrink-0" size={16} />;
+      case 'booking': return <CalendarDays className="text-info shrink-0" size={16} />;
+      case 'maintenance': return <Wrench className="text-warning shrink-0" size={16} />;
+      case 'transfer': return <Shuffle className="text-info shrink-0" size={16} />;
+      default: return <Info className="text-primary shrink-0" size={16} />;
     }
   };
 
-  // Filter list
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'all') return true;
     return n.type === filter;
@@ -95,10 +93,10 @@ export const Notifications: React.FC = () => {
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-zinc-900/40 p-6 rounded-2xl border border-white/5 backdrop-blur-md gap-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center card-surface p-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white font-sketch">In-App Notification Center</h2>
-          <p className="text-zinc-500 text-sm mt-1">
+          <h2 className="text-xl font-bold tracking-tight text-foreground">In-App Notification Center</h2>
+          <p className="text-muted-foreground text-sm mt-1">
             Browse system alerts, allocation approvals, resource reservations, and technician logs.
           </p>
         </div>
@@ -106,7 +104,7 @@ export const Notifications: React.FC = () => {
         <button 
           onClick={handleMarkAllRead}
           disabled={notifications.filter(n => !n.isRead).length === 0}
-          className="flex items-center gap-1.5 bg-zinc-800 disabled:opacity-40 hover:text-white border border-white/10 hover:border-white/20 text-zinc-300 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          className="flex items-center gap-1.5 bg-secondary disabled:opacity-40 hover:bg-muted border border-border text-foreground px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer w-fit"
         >
           <CheckSquare size={14} />
           <span>Mark All Read</span>
@@ -127,8 +125,8 @@ export const Notifications: React.FC = () => {
             onClick={() => setFilter(tab.value as any)}
             className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
               filter === tab.value 
-                ? 'bg-accent-green/10 border-accent-green text-accent-green' 
-                : 'bg-zinc-900/40 border-white/5 text-zinc-400 hover:text-white hover:border-white/10'
+                ? 'bg-primary/10 border-primary text-primary' 
+                : 'bg-muted/40 border-border text-muted-foreground hover:text-foreground hover:border-primary/20'
             }`}
           >
             {tab.name}
@@ -137,16 +135,16 @@ export const Notifications: React.FC = () => {
       </div>
 
       {/* Notifications feed list */}
-      <div className="glass-panel p-6 rounded-2xl min-h-[350px]">
+      <div className="card-surface p-6 min-h-[350px]">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-8 h-8 border-3 border-accent-green border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 font-sketch text-xs text-muted">Reading alerts index...</p>
+            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-xs text-muted-foreground">Reading alerts index...</p>
           </div>
         ) : (
           <div className="space-y-3.5">
             {filteredNotifications.length === 0 ? (
-              <div className="py-20 text-center text-zinc-500 font-sketch">
+              <div className="py-20 text-center text-muted-foreground">
                 No notifications logged under this category list.
               </div>
             ) : (
@@ -156,31 +154,31 @@ export const Notifications: React.FC = () => {
                   onClick={() => !n.isRead && handleMarkRead(n.id)}
                   className={`p-4 rounded-xl border flex items-center justify-between gap-4 transition-all cursor-pointer ${
                     n.isRead 
-                      ? 'bg-zinc-900/20 border-white/5 opacity-60 hover:opacity-85' 
-                      : 'bg-white/[0.03] border-white/10 hover:border-white/20'
+                      ? 'bg-muted/10 border-border/40 opacity-65 hover:opacity-85' 
+                      : 'bg-muted/20 border-border hover:border-primary/25'
                   }`}
                 >
                   <div className="flex items-center gap-3.5 overflow-hidden">
                     {/* Unread indicator */}
                     <div className="shrink-0 flex items-center justify-center w-6">
                       {!n.isRead ? (
-                        <div className={`w-2.5 h-2.5 rounded-full ${n.type === 'alert' ? 'bg-accent-red animate-pulse' : 'bg-accent-blue'}`}></div>
+                        <div className={`w-2.5 h-2.5 rounded-full ${n.type === 'alert' ? 'bg-destructive animate-pulse' : 'bg-primary'}`}></div>
                       ) : (
-                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-700"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></div>
                       )}
                     </div>
 
                     {/* Icon */}
-                    <div className="w-8 h-8 rounded-lg bg-zinc-950 flex items-center justify-center border border-white/5">
+                    <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center border border-border">
                       {getNotificationIcon(n.type)}
                     </div>
 
                     {/* Content */}
                     <div>
-                      <p className="text-xs text-white font-medium leading-relaxed line-clamp-2">
+                      <p className="text-xs text-foreground font-medium leading-relaxed line-clamp-2">
                         {n.message}
                       </p>
-                      <span className="text-[9px] text-zinc-500 font-semibold mt-1 block">
+                      <span className="text-[9px] text-muted-foreground mt-1 block">
                         {new Date(n.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -190,7 +188,7 @@ export const Notifications: React.FC = () => {
                   {!n.isRead && (
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleMarkRead(n.id); }}
-                      className="text-[10px] text-accent-green hover:underline shrink-0 flex items-center gap-1 font-bold border border-accent-green/20 bg-accent-green/5 hover:bg-accent-green/10 px-2.5 py-1 rounded-lg"
+                      className="text-[10px] text-primary hover:underline shrink-0 flex items-center gap-1 font-bold border border-primary/20 bg-primary/5 hover:bg-primary/10 px-2.5 py-1 rounded-lg cursor-pointer"
                     >
                       <Eye size={12} />
                       <span>Mark Read</span>

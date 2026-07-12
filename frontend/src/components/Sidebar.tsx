@@ -12,13 +12,37 @@ import {
   Bell, 
   ClipboardCheck,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Theme state
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('assetflow-theme') === 'dark' ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('assetflow-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('assetflow-theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   const fetchUnreadNotifications = async () => {
     if (!user) return;
@@ -51,17 +75,12 @@ export const Sidebar: React.FC = () => {
     { name: 'Organization Setup', path: '/organization', icon: Settings, roles: ['Admin'] },
     { name: 'Assets Directory', path: '/assets', icon: Package, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
     { name: 'Allocation & Transfer', path: '/allocations', icon: Shuffle, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
-    { name: 'Resource Booking', path: '/bookings', icon: ResourceBookingPath(), iconComponent: CalendarDays, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
+    { name: 'Resource Booking', path: '/bookings', iconComponent: CalendarDays, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
     { name: 'Maintenance', path: '/maintenance', icon: Wrench, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
     { name: 'Audit Directory', path: '/audit', icon: ClipboardCheck, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
     { name: 'Reports & Analytics', path: '/reports', icon: BarChart3, roles: ['Admin', 'AssetManager', 'DepartmentHead'] },
     { name: 'Notifications', path: '/notifications', icon: Bell, badgeCount: true, roles: ['Admin', 'AssetManager', 'DepartmentHead', 'Employee'] },
   ];
-
-  // Quick helper to determine path for Resource Booking (defaults to /bookings)
-  function ResourceBookingPath() {
-    return '/bookings';
-  }
 
   const handleLogout = () => {
     logout();
@@ -71,32 +90,32 @@ export const Sidebar: React.FC = () => {
   const filteredItems = menuItems.filter(item => item.roles.includes(user.role));
 
   return (
-    <aside className="w-80 glass-panel h-[calc(100vh-2rem)] sticky top-4 left-4 rounded-2xl flex flex-col justify-between p-6 z-20 border-white/5 bg-zinc-950/60 backdrop-blur-md">
+    <aside className="w-80 card-surface h-[calc(100vh-2rem)] sticky top-4 left-4 flex flex-col justify-between p-6 z-20">
       <div>
         {/* Header Branding */}
-        <div className="flex items-center gap-3 pb-6 border-b border-white/10 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-accent-green/10 border border-accent-green flex items-center justify-center font-sketch text-2xl font-bold text-accent-green shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+        <div className="flex items-center gap-3 pb-6 border-b border-border mb-6">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary flex items-center justify-center text-xl font-extrabold text-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]">
             AF
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5 font-sketch">
+            <h1 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
               AssetFlow
             </h1>
-            <span className="text-[10px] uppercase tracking-widest text-muted font-bold font-sans">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
               Internal Enterprise
             </span>
           </div>
         </div>
 
         {/* User Card */}
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 mb-6">
-          <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center text-accent-green font-bold">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border mb-6">
+          <div className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-primary font-bold">
             <UserIcon size={16} />
           </div>
           <div className="overflow-hidden">
-            <h4 className="text-sm font-semibold text-white truncate">{user.name}</h4>
+            <h4 className="text-sm font-semibold text-foreground truncate">{user.name}</h4>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-sketch font-bold bg-accent-green/15 text-accent-green border border-accent-green/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {user.role}
               </span>
             </div>
@@ -112,10 +131,10 @@ export const Sidebar: React.FC = () => {
                 key={item.name}
                 to={item.path}
                 className={({ isActive }) => `
-                  flex items-center justify-between px-4 py-3.5 rounded-xl border text-sm font-medium transition-all duration-200
+                  flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                   ${isActive 
-                    ? 'bg-accent-green/10 border-accent-green text-accent-green shadow-[0_0_15px_rgba(16,185,129,0.05)]' 
-                    : 'border-transparent text-zinc-400 hover:text-white hover:bg-white/5 hover:border-white/5'
+                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_15px_rgba(var(--primary),0.05)]' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30 hover:border-border'
                   }
                 `}
               >
@@ -124,7 +143,7 @@ export const Sidebar: React.FC = () => {
                   <span>{item.name}</span>
                 </div>
                 {item.badgeCount && unreadCount > 0 && (
-                  <span className="w-5 h-5 flex items-center justify-center text-[10px] font-bold bg-accent-red text-white rounded-full">
+                  <span className="w-5 h-5 flex items-center justify-center text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
                     {unreadCount}
                   </span>
                 )}
@@ -134,14 +153,29 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Logout Action */}
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-4 py-3.5 mt-6 w-full text-left text-sm font-medium text-zinc-400 hover:text-accent-red hover:bg-accent-red/10 border border-transparent hover:border-accent-red/20 rounded-xl transition-all duration-200"
-      >
-        <LogOut size={18} />
-        <span>Log Out Session</span>
-      </button>
+      <div className="space-y-3.5">
+        {/* Theme Switcher Button */}
+        <button
+          onClick={toggleTheme}
+          type="button"
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+        >
+          <div className="flex items-center gap-3 text-sm font-medium">
+            {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+            <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+          </div>
+          <span className="text-[10px] uppercase font-bold text-primary">Toggle</span>
+        </button>
+
+        {/* Logout Action */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 rounded-xl transition-all duration-200 cursor-pointer"
+        >
+          <LogOut size={18} />
+          <span>Log Out Session</span>
+        </button>
+      </div>
     </aside>
   );
 };
