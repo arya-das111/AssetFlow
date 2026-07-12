@@ -20,6 +20,7 @@ async function main() {
 
   // 2. Clear existing records in order of dependency
   console.log('Clearing old data...');
+  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0;');
   await prisma.activityLog.deleteMany({});
   await prisma.notification.deleteMany({});
   await prisma.maintenance.deleteMany({});
@@ -28,11 +29,9 @@ async function main() {
   await prisma.allocation.deleteMany({});
   await prisma.asset.deleteMany({});
   await prisma.category.deleteMany({});
-  
-  // Set department head reference to null to avoid circular reference on delete
-  await prisma.department.updateMany({ data: { headUserId: null } });
   await prisma.user.deleteMany({});
   await prisma.department.deleteMany({});
+  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1;');
 
   // 3. Create Categories
   console.log('Seeding Categories...');
