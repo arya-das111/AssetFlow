@@ -390,146 +390,151 @@ export const ResourceBooking: React.FC = () => {
               </span>
             </div>
 
-            {/* Weekdays columns headers row */}
-            <div className="flex gap-4 mb-2 text-center">
-              <div className="w-14 pr-2"></div>
-              
-              <div className="flex-1 grid grid-cols-7">
-                {weekDays.map((dayDate, idx) => {
-                  const isSelectedDay = dayDate.toDateString() === new Date(bookingDate).toDateString();
-                  return (
-                    <div key={idx} className="py-1">
-                      <span className={`block text-[11px] font-bold uppercase ${isSelectedDay ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {dayDate.toLocaleDateString(undefined, { weekday: 'short' })}
-                      </span>
-                      <span className={`block text-[9px] mt-0.5 font-mono ${isSelectedDay ? 'text-primary font-bold' : 'text-muted-foreground/60'}`}>
-                        {dayDate.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Grid container */}
-            <div className="relative border border-border rounded-2xl bg-muted/10 p-4 h-[500px] flex gap-4 select-none">
-              
-              {/* Hours Grid Labels */}
-              <div className="w-14 flex flex-col justify-between text-[10px] font-bold text-muted-foreground/60 font-mono pr-2 border-r border-border py-1">
-                {timeSlots.map(time => (
-                  <div key={time} className="h-6 flex items-center">{time}</div>
-                ))}
-              </div>
-
-              {/* 7 Column Grid Area */}
-              <div className="flex-1 grid grid-cols-7 relative py-1">
-                {/* Horizontal grid lines */}
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-1">
-                  {timeSlots.map(time => (
-                    <div key={`line-${time}`} className="border-b border-border/50 w-full h-0"></div>
-                  ))}
+            {/* Horizontal scroll container for smaller viewports */}
+            <div className="overflow-x-auto pb-2 scrollbar-thin">
+              <div className="min-w-[650px] pr-2">
+                {/* Weekdays columns headers row */}
+                <div className="flex gap-4 mb-2 text-center">
+                  <div className="w-14 pr-2"></div>
+                  
+                  <div className="flex-1 grid grid-cols-7">
+                    {weekDays.map((dayDate, idx) => {
+                      const isSelectedDay = dayDate.toDateString() === new Date(bookingDate).toDateString();
+                      return (
+                        <div key={idx} className="py-1">
+                          <span className={`block text-[11px] font-bold uppercase ${isSelectedDay ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {dayDate.toLocaleDateString(undefined, { weekday: 'short' })}
+                          </span>
+                          <span className={`block text-[9px] mt-0.5 font-mono ${isSelectedDay ? 'text-primary font-bold' : 'text-muted-foreground/60'}`}>
+                            {dayDate.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Day Columns */}
-                {weekDays.map((dayDate, dayIdx) => {
-                  const dayStr = dayDate.toDateString();
-                  const isBookingDay = new Date(bookingDate).toDateString() === dayStr;
+                {/* Grid container */}
+                <div className="relative border border-border rounded-2xl bg-muted/10 p-4 h-[500px] flex gap-4 select-none">
+                  
+                  {/* Hours Grid Labels */}
+                  <div className="w-14 flex flex-col justify-between text-[10px] font-bold text-muted-foreground/60 font-mono pr-2 border-r border-border py-1">
+                    {timeSlots.map(time => (
+                      <div key={time} className="h-6 flex items-center">{time}</div>
+                    ))}
+                  </div>
 
-                  const dayBookings = bookings.filter(b => {
-                    return b.resourceId === Number(selectedResourceId) && new Date(b.startTime).toDateString() === dayStr;
-                  });
+                  {/* 7 Column Grid Area */}
+                  <div className="flex-1 grid grid-cols-7 relative py-1">
+                    {/* Horizontal grid lines */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-1">
+                      {timeSlots.map(time => (
+                        <div key={`line-${time}`} className="border-b border-border/50 w-full h-0"></div>
+                      ))}
+                    </div>
 
-                  return (
-                    <div key={dayIdx} className="relative h-full border-r border-border last:border-r-0">
-                      {loading ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-background/5 pointer-events-none">
-                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Render confirmed day bookings */}
-                          {dayBookings.map(b => {
-                            const pos = getSlotPosition(b.startTime, b.endTime);
-                            const s = new Date(b.startTime);
-                            const e = new Date(b.endTime);
-                            const durationHours = (e.getTime() - s.getTime()) / (1000 * 60 * 60);
-                            const showBadge = durationHours > 1;
-                            return (
-                              <div
-                                key={b.id}
-                                style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
-                                className="absolute rounded-xl bg-info/80 border border-info p-1.5 flex flex-col justify-between text-white shadow-md overflow-hidden hover:z-10 transition-all hover:bg-info duration-200"
-                              >
-                                <div className="overflow-hidden">
-                                  {showBadge && (
-                                    <span className="inline-flex items-center justify-center text-[9px] font-bold tracking-wide uppercase bg-black/20 px-1.5 py-0.5 rounded border border-white/20 leading-none mb-1">
-                                      Booked
-                                    </span>
-                                  )}
-                                  <h5 className="text-[10px] font-bold truncate leading-tight">
-                                    {b.bookedBy.name.split('(')[0].trim()}
-                                  </h5>
-                                </div>
-                                <div className="flex justify-between items-center text-[9px] text-white/90 font-semibold font-mono mt-1">
-                                  <span>
-                                    {(() => {
-                                      const pad = (n: number) => String(n).padStart(2, '0');
-                                      return `${pad(s.getHours())}:${pad(s.getMinutes())} – ${pad(e.getHours())}:${pad(e.getMinutes())}`;
-                                    })()}
-                                  </span>
-                                  {(b.bookedBy.id === user?.id || user?.role === 'Admin') && (
-                                    <button 
-                                      onClick={() => handleCancelBooking(b.id)}
-                                      className="text-white/80 hover:text-white p-0.5 rounded bg-black/10 hover:bg-black/30 cursor-pointer"
-                                    >
-                                      <Trash2 size={10} />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                    {/* Day Columns */}
+                    {weekDays.map((dayDate, dayIdx) => {
+                      const dayStr = dayDate.toDateString();
+                      const isBookingDay = new Date(bookingDate).toDateString() === dayStr;
 
-                          {/* Render candidate preview block */}
-                          {isBookingDay && (
-                            !candConflict.isOverlap ? (
-                              (() => {
-                                const candS = getCandidateStartDateTime().toISOString();
-                                const candE = getCandidateEndDateTime().toISOString();
-                                const pos = getSlotPosition(candS, candE);
+                      const dayBookings = bookings.filter(b => {
+                        return b.resourceId === Number(selectedResourceId) && new Date(b.startTime).toDateString() === dayStr;
+                      });
+
+                      return (
+                        <div key={dayIdx} className="relative h-full border-r border-border last:border-r-0">
+                          {loading ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/5 pointer-events-none">
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Render confirmed day bookings */}
+                              {dayBookings.map(b => {
+                                const pos = getSlotPosition(b.startTime, b.endTime);
+                                const s = new Date(b.startTime);
+                                const e = new Date(b.endTime);
+                                const durationHours = (e.getTime() - s.getTime()) / (1000 * 60 * 60);
+                                const showBadge = durationHours > 1;
                                 return (
                                   <div
+                                    key={b.id}
                                     style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
-                                    className="absolute rounded-xl border-2 border-dashed border-primary bg-primary/10 p-1 flex flex-col justify-center items-center gap-0.5 text-primary pointer-events-none z-10 animate-in fade-in"
+                                    className="absolute rounded-xl bg-info/80 border border-info p-1.5 flex flex-col justify-between text-white shadow-md overflow-hidden hover:z-10 transition-all hover:bg-info duration-200"
                                   >
-                                    <span className="inline-flex items-center justify-center text-[9px] font-bold uppercase tracking-wider bg-primary/20 border border-primary/30 px-2 py-0.5 rounded leading-none">
-                                      Request
-                                    </span>
-                                    <span className="text-[10px] font-semibold font-mono leading-none mt-0.5">
-                                      {candStart} - {candEnd}
-                                    </span>
+                                    <div className="overflow-hidden">
+                                      {showBadge && (
+                                        <span className="inline-flex items-center justify-center text-[9px] font-bold tracking-wide uppercase bg-black/20 px-1.5 py-0.5 rounded border border-white/20 leading-none mb-1">
+                                          Booked
+                                        </span>
+                                      )}
+                                      <h5 className="text-[10px] font-bold truncate leading-tight">
+                                        {b.bookedBy.name.split('(')[0].trim()}
+                                      </h5>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[9px] text-white/90 font-semibold font-mono mt-1">
+                                      <span>
+                                        {(() => {
+                                          const pad = (n: number) => String(n).padStart(2, '0');
+                                          return `${pad(s.getHours())}:${pad(s.getMinutes())} – ${pad(e.getHours())}:${pad(e.getMinutes())}`;
+                                        })()}
+                                      </span>
+                                      {(b.bookedBy.id === user?.id || user?.role === 'Admin') && (
+                                        <button 
+                                          onClick={() => handleCancelBooking(b.id)}
+                                          className="text-white/80 hover:text-white p-0.5 rounded bg-black/10 hover:bg-black/30 cursor-pointer"
+                                        >
+                                          <Trash2 size={10} />
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                 );
-                              })()
-                            ) : (
-                              candStart < candEnd && (() => {
-                                const candS = getCandidateStartDateTime().toISOString();
-                                const candE = getCandidateEndDateTime().toISOString();
-                                const pos = getSlotPosition(candS, candE);
-                                return (
-                                  <div
-                                    style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
-                                    className="absolute rounded-xl border-2 border-dashed border-destructive bg-destructive/10 pointer-events-none z-10 animate-in fade-in"
-                                  />
-                                );
-                              })()
-                            )
+                              })}
+
+                              {/* Render candidate preview block */}
+                              {isBookingDay && (
+                                !candConflict.isOverlap ? (
+                                  (() => {
+                                    const candS = getCandidateStartDateTime().toISOString();
+                                    const candE = getCandidateEndDateTime().toISOString();
+                                    const pos = getSlotPosition(candS, candE);
+                                    return (
+                                      <div
+                                        style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
+                                        className="absolute rounded-xl border-2 border-dashed border-primary bg-primary/10 p-1 flex flex-col justify-center items-center gap-0.5 text-primary pointer-events-none z-10 animate-in fade-in"
+                                      >
+                                        <span className="inline-flex items-center justify-center text-[9px] font-bold uppercase tracking-wider bg-primary/20 border border-primary/30 px-2 py-0.5 rounded leading-none">
+                                          Request
+                                        </span>
+                                        <span className="text-[10px] font-semibold font-mono leading-none mt-0.5">
+                                          {candStart} - {candEnd}
+                                        </span>
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  candStart < candEnd && (() => {
+                                    const candS = getCandidateStartDateTime().toISOString();
+                                    const candE = getCandidateEndDateTime().toISOString();
+                                    const pos = getSlotPosition(candS, candE);
+                                    return (
+                                      <div
+                                        style={{ top: pos.top, height: pos.height, left: '4px', right: '4px' }}
+                                        className="absolute rounded-xl border-2 border-dashed border-destructive bg-destructive/10 pointer-events-none z-10 animate-in fade-in"
+                                      />
+                                    );
+                                  })()
+                                )
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
