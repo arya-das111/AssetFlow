@@ -1,0 +1,210 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  Admin
+  AssetManager
+  DepartmentHead
+  Employee
+}
+
+enum AssetStatus {
+  Available
+  Allocated
+  UnderMaintenance
+  Retired
+}
+
+enum AllocationStatus {
+  active
+  returned
+}
+
+enum TransferStatus {
+  pending
+  approved
+  rejected
+}
+
+enum MaintenanceStatus {
+  Pending
+  Approved
+  TechnicianAssigned
+  InProgress
+  Resolved
+  Rejected
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  name            String         @db.VarChar(120)
+  email           String         @unique @db.VarChar(160)
+  passwordHash    String         @map("password_hash") @db.VarChar(255)
+  role            Role           @default(Employee)
+  departmentId    Int?           @map("department_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  department      Department?    @relation("UserDepartment", fields: [departmentId], references: [id])
+  headDepartment  Department?    @relation("DepartmentHead")
+  allocations     Allocation[]
+  raisedTickets   Maintenance[]  @relation("RaisedTickets")
+  approvedTickets Maintenance[]  @relation("ApprovedTickets")
+  sentTransfers   Transfer[]     @relation("SentTransfers")
+  receivedTransfers Transfer[]   @relation("ReceivedTransfers")
+  requestedTransfers Transfer[]  @relation("RequestedTransfers")
+  bookings        Booking[]
+  notifications   Notification[]
+  activityLogs    ActivityLog[]
+
+  @@map("users")
+}
+
+model Department {
+  id                 Int          @id @default(autoincrement())
+  name               String       @db.VarChar(120)
+  code               String       @unique @db.VarChar(20)
+  headUserId         Int?         @unique @map("head_user_id")
+  parentDepartmentId Int?         @map("parent_department_id")
+  status             String       @default("Active") // Active or Inactive
+
+  head               User?        @relation("DepartmentHead", fields: [headUserId], references: [id])
+  parent             Department?  @relation("DeptHierarchy", fields: [parentDepartmentId], references: [id])
+  children           Department[] @relation("DeptHierarchy")
+  users              User[]       @relation("UserDepartment")
+  allocations        Allocation[]
+
+  @@map("departments")
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(120)
+  description String?  @db.VarChar(255)
+  assets      Asset[]
+
+  @@map("categories")
+}
+
+model Asset {
+  id           Int          @id @default(autoincrement())
+  assetCode    String       @unique @map("asset_code") @db.VarChar(20)
+  name         String       @db.VarChar(160)
+  categoryId   Int          @map("category_id")
+  location     String?      @db.VarChar(160)
+  status       AssetStatus  @default(Available)
+  qrCodeUrl    String?      @map("qr_code_url") @db.VarChar(255)
+  bookable     Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  category     Category     @relation(fields: [categoryId], references: [id])
+  allocations  Allocation[]
+  transfers    Transfer[]
+  bookings     Booking[]
+  maintenance  Maintenance[]
+
+  @@map("assets")
+}
+
+model Allocation {
+  id                 Int              @id @default(autoincrement())
+  assetId            Int              @map("asset_id")
+  employeeId         Int              @map("employee_id")
+  departmentId       Int              @map("department_id")
+  allocatedDate      DateTime         @map("allocated_date") @db.Date
+  expectedReturnDate DateTime         @map("expected_return_date") @db.Date
+  actualReturnDate   DateTime?        @map("actual_return_date") @db.Date
+  returnCondition    String?          @map("return_condition") @db.VarChar(255)
+  status             AllocationStatus @default(active)
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  asset              Asset            @relation(fields: [assetId], references: [id])
+  employee           User             @relation(fields: [employeeId], references: [id])
+  department         Department       @relation(fields: [departmentId], references: [id])
+
+  @@index([assetId, status])
+  @@map("allocations")
+}
+
+model Transfer {
+  id             Int            @id @default(autoincrement())
+  assetId        Int            @map("asset_id")
+  fromEmployeeId Int            @map("from_employee_id")
+  toEmployeeId   Int            @map("to_employee_id")
+  requestedById  Int            @map("requested_by")
+  reason         String?        @db.VarChar(500)
+  status         TransferStatus @default(pending)
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  asset          Asset          @relation(fields: [assetId], references: [id])
+  fromEmployee   User           @relation("SentTransfers", fields: [fromEmployeeId], references: [id])
+  toEmployee     User           @relation("ReceivedTransfers", fields: [toEmployeeId], references: [id])
+  requestedBy    User           @relation("RequestedTransfers", fields: [requestedById], references: [id])
+
+  @@map("transfers")
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  resourceId  Int      @map("resource_id")
+  bookedById  Int      @map("booked_by")
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  status      String   @default("confirmed") // confirmed or cancelled
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  resource    Asset    @relation(fields: [resourceId], references: [id])
+  bookedBy    User     @relation(fields: [bookedById], references: [id])
+
+  @@index([resourceId, startTime, endTime])
+  @@map("bookings")
+}
+
+model Maintenance {
+  id                 Int               @id @default(autoincrement())
+  assetId            Int               @map("asset_id")
+  raisedById         Int               @map("raised_by")
+  issueDescription   String            @map("issue_description") @db.VarChar(500)
+  status             MaintenanceStatus @default(Pending)
+  technicianAssigned String?           @map("technician_assigned") @db.VarChar(120)
+  approvedById       Int?              @map("approved_by")
+  resolvedAt         DateTime?         @map("resolved_at")
+  createdAt          DateTime          @default(now()) @map("created_at")
+
+  asset              Asset             @relation(fields: [assetId], references: [id])
+  raisedBy           User              @relation("RaisedTickets", fields: [raisedById], references: [id])
+  approvedBy         User?             @relation("ApprovedTickets", fields: [approvedById], references: [id])
+
+  @@map("maintenance")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  type      String   @db.VarChar(50) // info, alert, booking, maintenance, transfer
+  message   String   @db.VarChar(255)
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  actorId    Int      @map("actor_id")
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   Int?     @map("entity_id")
+  timestamp  DateTime @default(now())
+
+  actor      User     @relation(fields: [actorId], references: [id])
+
+  @@map("activity_logs")
+}
