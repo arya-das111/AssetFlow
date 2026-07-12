@@ -12,3 +12,4 @@ query_engine-*.dll.node
 .next/
 .idea/
 .vscode/
+.vercel

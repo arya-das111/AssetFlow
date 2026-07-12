@@ -25,6 +25,7 @@ interface DashboardMetrics {
   pendingTransfers: number;
   activeBookings: number;
   overdueCount: number;
+  upcomingCount: number;
 }
 
 interface ActivityEvent {
@@ -52,7 +53,7 @@ export const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('assetflow_token');
-      const res = await fetch('http://localhost:4000/api/reports/dashboard', {
+      const res = await fetch('/api/reports/dashboard', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -138,53 +139,50 @@ export const Dashboard: React.FC = () => {
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Total Assets */}
-        <div className="card-surface p-5 relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Assets Registered</p>
-              <h3 className="text-3xl font-extrabold text-foreground mt-2 tracking-tight">{metrics.totalAssets}</h3>
-            </div>
-            <div className="p-3 rounded-xl bg-muted/40 border border-border text-muted-foreground group-hover:text-foreground transition-all">
-              <Boxes size={20} />
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-border to-transparent"></div>
-        </div>
-
         {/* Available Assets */}
         <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Available Assets</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Assets Available</p>
               <h3 className="text-3xl font-extrabold text-success mt-2 tracking-tight">{metrics.availableAssets}</h3>
             </div>
             <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-success">
               <CheckCircle2 size={20} />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-success/20 to-transparent"></div>
         </div>
 
         {/* Allocated Assets */}
         <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Allocated Assets</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Assets Allocated</p>
               <h3 className="text-3xl font-extrabold text-info mt-2 tracking-tight">{metrics.allocatedAssets}</h3>
             </div>
             <div className="p-3 rounded-xl bg-info/10 border border-info/20 text-info">
               <Boxes size={20} />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-info/20 to-transparent"></div>
+        </div>
+
+        {/* Maintenance Today */}
+        <div className="card-surface p-5 relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Maintenance Today</p>
+              <h3 className="text-3xl font-extrabold text-destructive mt-2 tracking-tight">{metrics.maintenanceTickets}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
+              <Wrench size={20} />
+            </div>
+          </div>
         </div>
 
         {/* Active Bookings */}
         <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Bookings Today</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Active Bookings</p>
               <h3 className="text-3xl font-extrabold text-foreground mt-2 tracking-tight">{metrics.activeBookings}</h3>
             </div>
             <div className="p-3 rounded-xl bg-muted/40 border border-border text-muted-foreground group-hover:text-foreground transition-all">
@@ -206,15 +204,15 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Under Maintenance */}
+        {/* Upcoming Returns */}
         <div className="card-surface p-5 relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Open Maintenance</p>
-              <h3 className="text-3xl font-extrabold text-destructive mt-2 tracking-tight">{metrics.maintenanceTickets}</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Upcoming Returns</p>
+              <h3 className="text-3xl font-extrabold text-foreground mt-2 tracking-tight">{metrics.upcomingCount}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
-              <Wrench size={20} />
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-muted-foreground group-hover:text-foreground transition-all">
+              <Clock size={20} />
             </div>
           </div>
         </div>

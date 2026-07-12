@@ -74,25 +74,25 @@ export const AssetAllocation: React.FC = () => {
     const token = localStorage.getItem('assetflow_token');
     try {
       // Fetch physical (non-bookable) assets
-      const resAssets = await fetch('http://localhost:4000/api/assets?bookable=false', {
+      const resAssets = await fetch('/api/assets?bookable=false', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resAssets.ok) setAssets(await resAssets.json());
 
       // Fetch employees
-      const resEmployees = await fetch('http://localhost:4000/api/organization/employees', {
+      const resEmployees = await fetch('/api/organization/employees', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resEmployees.ok) setEmployees(await resEmployees.json());
 
       // Fetch allocations list
-      const resAllocations = await fetch('http://localhost:4000/api/allocations', {
+      const resAllocations = await fetch('/api/allocations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resAllocations.ok) setAllocations(await resAllocations.json());
 
       // Fetch departments
-      const resDepts = await fetch('http://localhost:4000/api/organization/departments', {
+      const resDepts = await fetch('/api/organization/departments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resDepts.ok) setDepartments(await resDepts.json());
@@ -137,7 +137,7 @@ export const AssetAllocation: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/allocations', {
+      const res = await fetch('/api/allocations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ export const AssetAllocation: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/allocations/transfer', {
+      const res = await fetch('/api/allocations/transfer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +215,7 @@ export const AssetAllocation: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/allocations/${showReturnModal}/return`, {
+      const res = await fetch(`/api/allocations/${showReturnModal}/return`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -359,7 +359,7 @@ export const AssetAllocation: React.FC = () => {
                       className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none cursor-pointer"
                     >
                       <option value="">Select Department...</option>
-                      {departments.map(d => (
+                      {departments.filter(d => d.status === 'Active' || d.id === allocDeptId).map(d => (
                         <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
                       ))}
                     </select>

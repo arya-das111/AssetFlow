@@ -14,10 +14,16 @@ import {
   LogOut,
   User as UserIcon,
   Sun,
-  Moon
+  Moon,
+  X
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+export interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -48,7 +54,7 @@ export const Sidebar: React.FC = () => {
     if (!user) return;
     try {
       const token = localStorage.getItem('assetflow_token');
-      const res = await fetch('http://localhost:4000/api/notifications', {
+      const res = await fetch('/api/notifications', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -90,29 +96,50 @@ export const Sidebar: React.FC = () => {
   const filteredItems = menuItems.filter(item => item.roles.includes(user.role));
 
   return (
-    <aside className="w-80 card-surface h-[calc(100vh-2rem)] sticky top-4 left-4 flex flex-col justify-between p-6 z-20">
-      <div>
-        {/* Header Branding */}
-        <div className="flex items-center gap-3 pb-6 border-b border-border mb-6">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary flex items-center justify-center text-xl font-extrabold text-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]">
-            AF
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          onClick={onClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden cursor-pointer animate-in fade-in"
+        />
+      )}
+
+      <aside className={`
+        w-80 max-w-[calc(100vw-2rem)] card-surface h-[calc(100vh-2rem)] fixed lg:sticky top-4 left-4 lg:left-0 z-40
+        flex flex-col justify-between p-6 transition-transform duration-300
+        ${isOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'}
+      `}>
+        <div>
+          {/* Header Branding */}
+          <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary flex items-center justify-center text-xl font-extrabold text-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]">
+                AF
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
+                  AssetFlow
+                </h1>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                  Internal Enterprise
+                </span>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="lg:hidden p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
-              AssetFlow
-            </h1>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-              Internal Enterprise
-            </span>
-          </div>
-        </div>
 
         {/* User Card */}
         <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border mb-6">
           <div className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-primary font-bold">
             <UserIcon size={16} />
           </div>
-          <div className="overflow-hidden">
+          <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-foreground truncate">{user.name}</h4>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -130,6 +157,7 @@ export const Sidebar: React.FC = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
+                onClick={onClose}
                 className={({ isActive }) => `
                   flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                   ${isActive 
@@ -177,5 +205,6 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
     </aside>
+    </>
   );
 };

@@ -49,6 +49,20 @@ export const OrganizationSetup: React.FC = () => {
   const [showDeptModal, setShowDeptModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
 
+  // Edit forms states
+  const [showEditDeptModal, setShowEditDeptModal] = useState(false);
+  const [editingDeptId, setEditingDeptId] = useState<number | null>(null);
+  const [editDeptName, setEditDeptName] = useState('');
+  const [editDeptCode, setEditDeptCode] = useState('');
+  const [editDeptParentId, setEditDeptParentId] = useState<number | ''>('');
+  const [editDeptHeadUserId, setEditDeptHeadUserId] = useState<number | ''>('');
+  const [editDeptStatus, setEditDeptStatus] = useState<'Active' | 'Inactive'>('Active');
+
+  const [showEditCatModal, setShowEditCatModal] = useState(false);
+  const [editingCatId, setEditingCatId] = useState<number | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [editCatDesc, setEditCatDesc] = useState('');
+
   // Form states
   const [deptName, setDeptName] = useState('');
   const [deptCode, setDeptCode] = useState('');
@@ -67,17 +81,17 @@ export const OrganizationSetup: React.FC = () => {
     const token = localStorage.getItem('assetflow_token');
     try {
       if (activeTab === 'departments') {
-        const res = await fetch('http://localhost:4000/api/organization/departments', {
+        const res = await fetch('/api/organization/departments', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setDepartments(await res.json());
       } else if (activeTab === 'categories') {
-        const res = await fetch('http://localhost:4000/api/assets/categories', {
+        const res = await fetch('/api/assets/categories', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setCategories(await res.json());
       } else if (activeTab === 'employees') {
-        const res = await fetch('http://localhost:4000/api/organization/employees', {
+        const res = await fetch('/api/organization/employees', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setEmployees(await res.json());
@@ -98,7 +112,7 @@ export const OrganizationSetup: React.FC = () => {
     setErrorMsg('');
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/organization/departments', {
+      const res = await fetch('/api/organization/departments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +146,7 @@ export const OrganizationSetup: React.FC = () => {
     setErrorMsg('');
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/assets/categories', {
+      const res = await fetch('/api/assets/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,10 +173,92 @@ export const OrganizationSetup: React.FC = () => {
     }
   };
 
+  const handleOpenEditDept = (dept: Department) => {
+    setEditingDeptId(dept.id);
+    setEditDeptName(dept.name);
+    setEditDeptCode(dept.code);
+    setEditDeptParentId(dept.parentDepartmentId || '');
+    setEditDeptHeadUserId(dept.headUserId || '');
+    setEditDeptStatus(dept.status as 'Active' | 'Inactive');
+    setShowEditDeptModal(true);
+  };
+
+  const handleUpdateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    const token = localStorage.getItem('assetflow_token');
+    try {
+      const res = await fetch(`/api/organization/departments/${editingDeptId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editDeptName,
+          code: editDeptCode.toUpperCase(),
+          parentDepartmentId: editDeptParentId ? Number(editDeptParentId) : null,
+          headUserId: editDeptHeadUserId ? Number(editDeptHeadUserId) : null,
+          status: editDeptStatus
+        })
+      });
+
+      if (res.ok) {
+        setShowEditDeptModal(false);
+        setEditingDeptId(null);
+        fetchData();
+      } else {
+        const data = await res.json();
+        setErrorMsg(data.error || 'Failed to update department.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Server error. Please try again.');
+    }
+  };
+
+  const handleOpenEditCat = (cat: Category) => {
+    setEditingCatId(cat.id);
+    setEditCatName(cat.name);
+    setEditCatDesc(cat.description || '');
+    setShowEditCatModal(true);
+  };
+
+  const handleUpdateCat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    const token = localStorage.getItem('assetflow_token');
+    try {
+      const res = await fetch(`/api/assets/categories/${editingCatId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editCatName,
+          description: editCatDesc || null
+        })
+      });
+
+      if (res.ok) {
+        setShowEditCatModal(false);
+        setEditingCatId(null);
+        fetchData();
+      } else {
+        const data = await res.json();
+        setErrorMsg(data.error || 'Failed to update category.');
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Server error. Please try again.');
+    }
+  };
+
   const handlePromoteRole = async (empId: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/organization/employees/${empId}/role`, {
+      const res = await fetch(`/api/organization/employees/${empId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +365,8 @@ export const OrganizationSetup: React.FC = () => {
                       <th className="pb-3 px-4">Director / Head</th>
                       <th className="pb-3 px-4">Parent Scope</th>
                       <th className="pb-3 px-4">Staff Count</th>
-                      <th className="pb-3 pl-4">Status</th>
+                      <th className="pb-3 px-4">Status</th>
+                      <th className="pb-3 pl-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border text-foreground">
@@ -299,11 +396,23 @@ export const OrganizationSetup: React.FC = () => {
                             )}
                           </td>
                           <td className="py-4 px-4 font-semibold text-muted-foreground">{dept.employeeCount} employees</td>
-                          <td className="py-4 pl-4">
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 border rounded-full border-success/30 bg-success/10 text-success">
-                              Active
+                          <td className="py-4 px-4">
+                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 border rounded-full ${
+                              dept.status === 'Inactive' 
+                                ? 'border-destructive/30 bg-destructive/5 text-destructive' 
+                                : 'border-success/30 bg-success/5 text-success'
+                            }`}>
+                              {dept.status || 'Active'}
                             </span>
                           </td>
+                          <td className="py-4 pl-4 text-right">
+                             <button
+                               onClick={() => handleOpenEditDept(dept)}
+                               className="text-xs text-primary font-bold hover:underline cursor-pointer"
+                             >
+                               Edit
+                             </button>
+                           </td>
                         </tr>
                       ))
                     )}
@@ -324,8 +433,16 @@ export const OrganizationSetup: React.FC = () => {
                   categories.map(cat => (
                     <div key={cat.id} className="p-5 rounded-2xl bg-muted/10 border border-border hover:border-primary/20 transition-all flex flex-col justify-between">
                       <div>
-                        <div className="w-8 h-8 rounded bg-muted/50 border border-border flex items-center justify-center text-primary text-sm font-bold mb-3">
-                          #
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="w-8 h-8 rounded bg-muted/50 border border-border flex items-center justify-center text-primary text-sm font-bold">
+                            #
+                          </div>
+                          <button
+                            onClick={() => handleOpenEditCat(cat)}
+                            className="text-xs text-primary font-bold hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
                         </div>
                         <h4 className="text-sm font-bold text-foreground">{cat.name}</h4>
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cat.description || 'No description summary available.'}</p>
@@ -553,6 +670,152 @@ export const OrganizationSetup: React.FC = () => {
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/95 shadow cursor-pointer"
                   >
                     Save Tag Category
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT DEPARTMENT MODAL */}
+      {showEditDeptModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-xl flex flex-col justify-between max-h-[90vh] overflow-y-auto">
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-4">Edit Department Details</h3>
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+                  {errorMsg}
+                </div>
+              )}
+              <form onSubmit={handleUpdateDept} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Department Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Field Operations" 
+                    value={editDeptName}
+                    onChange={(e) => setEditDeptName(e.target.value)}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none focus:border-primary/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Unique Code</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. OPS" 
+                    value={editDeptCode}
+                    onChange={(e) => setEditDeptCode(e.target.value)}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none focus:border-primary/50 uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Parent Department (Optional)</label>
+                  <select 
+                    value={editDeptParentId}
+                    onChange={(e) => setEditDeptParentId(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none cursor-pointer"
+                  >
+                    <option value="">No Parent - Root Department</option>
+                    {departments.filter(d => d.id !== editingDeptId).map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Department Head (Optional)</label>
+                  <select 
+                    value={editDeptHeadUserId}
+                    onChange={(e) => setEditDeptHeadUserId(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none cursor-pointer"
+                  >
+                    <option value="">No Head Assigned</option>
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.id}>{emp.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Status</label>
+                  <select 
+                    value={editDeptStatus}
+                    onChange={(e) => setEditDeptStatus(e.target.value as 'Active' | 'Inactive')}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none cursor-pointer"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button" 
+                    onClick={() => { setShowEditDeptModal(false); setErrorMsg(''); }}
+                    className="bg-secondary text-muted-foreground border border-border px-4 py-2 rounded-xl text-xs font-bold hover:text-foreground cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/95 shadow cursor-pointer"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT CATEGORY MODAL */}
+      {showEditCatModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-xl flex flex-col justify-between max-h-[90vh] overflow-y-auto">
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-4">Edit Tag Category</h3>
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+                  {errorMsg}
+                </div>
+              )}
+              <form onSubmit={handleUpdateCat} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Category Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Graphic Tablets" 
+                    value={editCatName}
+                    onChange={(e) => setEditCatName(e.target.value)}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none focus:border-primary/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Brief Description</label>
+                  <textarea 
+                    placeholder="e.g. Digital drawing input monitors for creative teams" 
+                    value={editCatDesc}
+                    onChange={(e) => setEditCatDesc(e.target.value)}
+                    rows={3}
+                    className="w-full bg-muted/40 text-foreground text-xs px-3.5 py-2.5 rounded-xl border border-border outline-none focus:border-primary/50 resize-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button 
+                    type="button" 
+                    onClick={() => { setShowEditCatModal(false); setErrorMsg(''); }}
+                    className="bg-secondary text-muted-foreground border border-border px-4 py-2 rounded-xl text-xs font-bold hover:text-foreground cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/95 shadow cursor-pointer"
+                  >
+                    Save Changes
                   </button>
                 </div>
               </form>

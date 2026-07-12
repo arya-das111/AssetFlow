@@ -125,6 +125,23 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
       }
     });
 
+    // 5. Upcoming return count (allocations where expectedReturnDate >= today and expectedReturnDate <= today + 7 days and status = active)
+    const todayVal = new Date();
+    todayVal.setHours(0, 0, 0, 0);
+    const sevenDaysLater = new Date();
+    sevenDaysLater.setDate(todayVal.getDate() + 7);
+    sevenDaysLater.setHours(23, 59, 59, 999);
+
+    const upcomingCount = await prisma.allocation.count({
+      where: {
+        status: 'active',
+        expectedReturnDate: {
+          gte: todayVal,
+          lte: sevenDaysLater
+        }
+      }
+    });
+
     return res.json({
       metrics: {
         totalAssets,
@@ -133,7 +150,8 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
         maintenanceTickets,
         pendingTransfers,
         activeBookings,
-        overdueCount
+        overdueCount,
+        upcomingCount
       },
       chartData,
       activityFeed

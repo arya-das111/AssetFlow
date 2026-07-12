@@ -136,6 +136,39 @@ router.post('/categories', authenticateToken, requireRole(['Admin']), async (req
   }
 });
 
+// @route   PUT /api/assets/categories/:id
+// @desc    Update asset category (Admin only)
+router.put('/categories/:id', authenticateToken, requireRole(['Admin']), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid category ID' });
+
+  const { name, description } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Category name is required' });
+  }
+
+  try {
+    const category = await prisma.category.update({
+      where: { id },
+      data: { name, description }
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        actorId: req.user.id,
+        action: 'UPDATE_CATEGORY',
+        entityType: 'Category',
+        entityId: category.id
+      }
+    });
+
+    return res.json(category);
+  } catch (error) {
+    console.error('Update category error:', error);
+    return res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
 // @route   GET /api/assets/:id
 // @desc    Get a single asset by ID
 router.get('/:id', authenticateToken, async (req, res) => {

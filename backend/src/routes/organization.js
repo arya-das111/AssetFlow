@@ -11,13 +11,21 @@ const departmentSchema = z.object({
   parentDepartmentId: z.number().nullable().optional()
 });
 
+const departmentUpdateSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  code: z.string().min(2, 'Code must be at least 2 characters').max(10).optional(),
+  parentDepartmentId: z.number().nullable().optional(),
+  headUserId: z.number().nullable().optional(),
+  status: z.enum(['Active', 'Inactive']).optional()
+});
+
 const promoteSchema = z.object({
   role: z.enum(['Admin', 'AssetManager', 'DepartmentHead', 'Employee'])
 });
 
 // @route   GET /api/organization/departments
 // @desc    Get all departments with heads and counts
-router.get('/departments', authenticateToken, async (req, res) => {
+router.get('/departments', async (req, res) => {
   try {
     const departments = await prisma.department.findMany({
       include: {
@@ -89,6 +97,59 @@ router.post('/departments', authenticateToken, requireRole(['Admin']), async (re
     }
     console.error('Create department error:', error);
     return res.status(500).json({ error: 'Failed to create department' });
+  }
+});
+
+// @route   PUT /api/organization/departments/:id
+// @desc    Update department (Admin only)
+router.put('/departments/:id', authenticateToken, requireRole(['Admin']), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid department ID' });
+
+  try {
+    const data = departmentUpdateSchema.parse(req.body);
+
+    const dept = await prisma.department.findUnique({ where: { id } });
+    if (!dept) return res.status(404).json({ error: 'Department not found' });
+
+    // If changing code, check unique
+    if (data.code && data.code.toUpperCase() !== dept.code) {
+      const existing = await prisma.department.findUnique({
+        where: { code: data.code.toUpperCase() }
+      });
+      if (existing) {
+        return res.status(400).json({ error: 'Department code must be unique' });
+      }
+    }
+
+    // Update
+    const updated = await prisma.department.update({
+      where: { id },
+      data: {
+        name: data.name,
+        code: data.code ? data.code.toUpperCase() : undefined,
+        parentDepartmentId: data.parentDepartmentId,
+        headUserId: data.headUserId,
+        status: data.status
+      }
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        actorId: req.user.id,
+        action: 'UPDATE_DEPARTMENT',
+        entityType: 'Department',
+        entityId: id
+      }
+    });
+
+    return res.json(updated);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('Update department error:', error);
+    return res.status(500).json({ error: 'Failed to update department' });
   }
 });
 

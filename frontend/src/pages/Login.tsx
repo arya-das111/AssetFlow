@@ -26,7 +26,7 @@ export const Login: React.FC = () => {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:4000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -50,7 +50,7 @@ export const Login: React.FC = () => {
     e.preventDefault();
     if (!forgotEmail) return;
     try {
-      const res = await fetch('http://localhost:4000/api/auth/forgot-password', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail })
@@ -95,6 +95,7 @@ export const Login: React.FC = () => {
               <input
                 type="email"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
@@ -121,6 +122,7 @@ export const Login: React.FC = () => {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

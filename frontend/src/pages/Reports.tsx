@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { jsPDF } from 'jspdf';
 import { 
   BarChart, 
   Bar, 
@@ -57,7 +58,7 @@ export const Reports: React.FC = () => {
     setLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/reports/analytics', {
+      const res = await fetch('/api/reports/analytics', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -79,49 +80,166 @@ export const Reports: React.FC = () => {
   }, [user]);
 
   const handleExport = () => {
-    // Generate CSV content
-    let csvContent = "AssetFlow Enterprise Analytics Report\n";
-    csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Header Branding Bar
+    doc.setFillColor(37, 99, 235); // primary blue
+    doc.rect(0, 0, pageWidth, 15, 'F');
+    
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text('ASSETFLOW ERP • ENTERPRISE ANALYTICS REPORT', 14, 10);
+    
+    // Title
+    doc.setFontSize(22);
+    doc.setTextColor(17, 24, 39); // dark slate
+    doc.text('System Analytics Summary', 14, 32);
+    
+    // Date and Metadata
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128); // muted grey
+    doc.text(`Report Scope: Organization Wide`, 14, 39);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 44);
+    
+    // Divider
+    doc.setDrawColor(229, 231, 235);
+    doc.line(14, 49, pageWidth - 14, 49);
+    
+    let y = 58;
 
-    csvContent += "--- DEPARTMENT WISE ASSETS ALLOCATION ---\n";
-    csvContent += "Department Code,Asset Handover Count\n";
+    // Function to draw section headers
+    const drawSectionHeader = (title: string, yPos: number) => {
+      doc.setFillColor(243, 244, 246);
+      doc.rect(14, yPos - 6, pageWidth - 28, 8, 'F');
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(31, 41, 55);
+      doc.text(title, 18, yPos - 1);
+    };
+
+    // Section 1: Department wise allocations
+    drawSectionHeader('1. DEPARTMENT-WISE ACTIVE HANDOVERS', y);
+    y += 10;
+    
+    // Draw table header
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    doc.text('Department Code', 20, y);
+    doc.text('Handover Count', pageWidth / 2, y);
+    y += 5;
+    doc.line(14, y - 2, pageWidth - 14, y - 2);
+    
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(31, 41, 55);
     deptWiseAssets.forEach(item => {
-      csvContent += `"${item.code}",${item.count}\n`;
+      doc.text(item.code, 20, y);
+      doc.text(`${item.count} items`, pageWidth / 2, y);
+      y += 7;
     });
-    csvContent += "\n";
-
-    csvContent += "--- MAINTENANCE BY CATEGORY ---\n";
-    csvContent += "Category,Ticket Count\n";
+    
+    y += 5;
+    
+    // Section 2: Maintenance category
+    drawSectionHeader('2. ACTIVE REPAIR TICKETS BY CATEGORY', y);
+    y += 10;
+    
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    doc.text('Asset Category', 20, y);
+    doc.text('Open Service Tickets', pageWidth / 2, y);
+    y += 5;
+    doc.line(14, y - 2, pageWidth - 14, y - 2);
+    
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(31, 41, 55);
     maintCounts.forEach(item => {
-      csvContent += `"${item.category}",${item.count}\n`;
+      doc.text(item.category, 20, y);
+      doc.text(`${item.count} tickets`, pageWidth / 2, y);
+      y += 7;
     });
-    csvContent += "\n";
 
-    csvContent += "--- MOST UTILIZED ASSETS (TOP 5) ---\n";
-    csvContent += "Asset Code,Asset Name,Handover Frequency\n";
-    mostUsedAssets.forEach(item => {
-      csvContent += `"${item.tag}","${item.name.replace(/"/g, '""')}",${item.count}\n`;
+    // Page Break for Page 2
+    doc.addPage();
+    
+    // Header Branding Bar for Page 2
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, pageWidth, 15, 'F');
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text('ASSETFLOW ERP • ENTERPRISE ANALYTICS REPORT', 14, 10);
+    
+    let yPage2 = 28;
+
+    // Section 3: Most utilized
+    drawSectionHeader('3. HARDWARE HANDOVER FREQUENCY (TOP 5)', yPage2);
+    yPage2 += 10;
+    
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    doc.text('Asset Code', 20, yPage2);
+    doc.text('Name', 50, yPage2);
+    doc.text('Total Handover Activity', pageWidth - 60, yPage2);
+    yPage2 += 5;
+    doc.line(14, yPage2 - 2, pageWidth - 14, yPage2 - 2);
+    
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(31, 41, 55);
+    mostUsedAssets.slice(0, 5).forEach(item => {
+      doc.text(item.tag, 20, yPage2);
+      doc.text(item.name.length > 25 ? item.name.substring(0, 25) + '...' : item.name, 50, yPage2);
+      doc.text(`${item.count} handovers`, pageWidth - 60, yPage2);
+      yPage2 += 7;
     });
-    csvContent += "\n";
 
-    csvContent += "--- IDLE HARDWARE IN STORAGE ---\n";
-    csvContent += "Asset Code,Asset Name,Storage Location,Days Idle\n";
+    yPage2 += 8;
+
+    // Section 4: Idle
+    drawSectionHeader('4. IDLE PHYSICAL HARDWARE IN STORAGE', yPage2);
+    yPage2 += 10;
+    
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    doc.text('Asset Code', 20, yPage2);
+    doc.text('Name', 50, yPage2);
+    doc.text('Storage Location', 110, yPage2);
+    doc.text('Days Idle', pageWidth - 40, yPage2);
+    yPage2 += 5;
+    doc.line(14, yPage2 - 2, pageWidth - 14, yPage2 - 2);
+    
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(31, 41, 55);
     idleAssets.forEach(item => {
-      csvContent += `"${item.tag}","${item.name.replace(/"/g, '""')}","${(item.location || 'HQ Storage').replace(/"/g, '""')}",${item.daysIdle}\n`;
+      doc.text(item.tag, 20, yPage2);
+      doc.text(item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name, 50, yPage2);
+      doc.text(item.location || 'HQ Storage', 110, yPage2);
+      doc.text(`${item.daysIdle} days`, pageWidth - 40, yPage2);
+      yPage2 += 7;
     });
 
-    // Create a blob and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `AssetFlow_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setMockExportMsg(`Report downloaded successfully as AssetFlow_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    // Footer branding on all pages
+    const addFooter = (pNum: number) => {
+      doc.setPage(pNum);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(156, 163, 175);
+      doc.text(`Page ${pNum} of 2 • Confidentially Generated by AssetFlow ERP System`, 14, 287);
+    };
+    
+    addFooter(1);
+    addFooter(2);
+    
+    const reportDate = new Date().toISOString().split('T')[0];
+    doc.save(`AssetFlow_Report_${reportDate}.pdf`);
+    
+    setMockExportMsg(`Report downloaded successfully as AssetFlow_Report_${reportDate}.pdf`);
     setTimeout(() => setMockExportMsg(''), 5000);
   };
 

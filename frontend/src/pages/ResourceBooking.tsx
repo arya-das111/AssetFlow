@@ -89,7 +89,7 @@ export const ResourceBooking: React.FC = () => {
   const fetchResources = async () => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/assets?bookable=true', {
+      const res = await fetch('/api/assets?bookable=true', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -110,7 +110,7 @@ export const ResourceBooking: React.FC = () => {
     setLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/bookings?resourceId=${selectedResourceId}`, {
+      const res = await fetch(`/api/bookings?resourceId=${selectedResourceId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -227,7 +227,7 @@ export const ResourceBooking: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/bookings', {
+      const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ export const ResourceBooking: React.FC = () => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/bookings/${bookingId}/cancel`, {
+      const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

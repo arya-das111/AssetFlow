@@ -28,7 +28,7 @@ export const Notifications: React.FC = () => {
     setLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/notifications', {
+      const res = await fetch('/api/notifications', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -48,7 +48,7 @@ export const Notifications: React.FC = () => {
   const handleMarkRead = async (id: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/notifications/${id}/read`, {
+      const res = await fetch(`/api/notifications/${id}/read`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -63,7 +63,7 @@ export const Notifications: React.FC = () => {
   const handleMarkAllRead = async () => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/notifications/read-all', {
+      const res = await fetch('/api/notifications/read-all', {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });

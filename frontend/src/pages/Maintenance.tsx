@@ -49,12 +49,12 @@ export const Maintenance: React.FC = () => {
     setLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      const resTickets = await fetch('http://localhost:4000/api/maintenance', {
+      const resTickets = await fetch('/api/maintenance', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resTickets.ok) setTickets(await resTickets.json());
 
-      const resAssets = await fetch('http://localhost:4000/api/assets', {
+      const resAssets = await fetch('/api/assets', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resAssets.ok) setAssets(await resAssets.json());
@@ -79,7 +79,7 @@ export const Maintenance: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/maintenance', {
+      const res = await fetch('/api/maintenance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const Maintenance: React.FC = () => {
   const handleApprove = async (ticketId: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/maintenance/${ticketId}/approve`, {
+      const res = await fetch(`/api/maintenance/${ticketId}/approve`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -124,7 +124,7 @@ export const Maintenance: React.FC = () => {
   const handleReject = async (ticketId: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/maintenance/${ticketId}/reject`, {
+      const res = await fetch(`/api/maintenance/${ticketId}/reject`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -142,7 +142,7 @@ export const Maintenance: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/maintenance/${assigningTicketId}/assign`, {
+      const res = await fetch(`/api/maintenance/${assigningTicketId}/assign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ export const Maintenance: React.FC = () => {
   const handleStartWork = async (ticketId: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/maintenance/${ticketId}/start`, {
+      const res = await fetch(`/api/maintenance/${ticketId}/start`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -179,7 +179,7 @@ export const Maintenance: React.FC = () => {
   const handleResolve = async (ticketId: number) => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/maintenance/${ticketId}/resolve`, {
+      const res = await fetch(`/api/maintenance/${ticketId}/resolve`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "node prisma/seed.js",
     "db:setup": "prisma db push && npm run prisma:seed",
-    "test": "jest --runInBand --detectOpenHandles --forceExit"
+    "test": "jest --runInBand --detectOpenHandles --forceExit",
+    "postinstall": "prisma generate && prisma db push"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

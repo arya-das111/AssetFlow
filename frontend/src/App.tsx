@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Sidebar } from './components/Sidebar';
+import { Menu } from 'lucide-react';
 
 // Pages
 import { Login } from './pages/Login';
@@ -29,9 +30,30 @@ const queryClient = new QueryClient({
 });
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6 text-foreground">
-      <Sidebar />
+    <div className="min-h-screen bg-background p-4 flex flex-col lg:flex-row gap-4 lg:gap-6 text-foreground relative">
+      {/* Mobile Top Header */}
+      <header className="lg:hidden flex items-center justify-between p-4 card-surface rounded-2xl border border-border w-full">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary flex items-center justify-center text-sm font-extrabold text-primary">
+            AF
+          </div>
+          <span className="font-bold text-foreground text-sm">AssetFlow ERP</span>
+        </div>
+        <button 
+          onClick={() => setSidebarOpen(true)}
+          className="p-2 rounded-xl bg-muted/40 border border-border text-foreground hover:bg-muted/80 cursor-pointer"
+        >
+          <Menu size={18} />
+        </button>
+      </header>
+
+      {/* Sidebar (Responsive drawer) */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Content pane */}
       <main className="flex-1 overflow-y-auto max-h-[calc(100vh-2rem)] pr-2">
         {children}
       </main>

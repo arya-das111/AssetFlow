@@ -75,7 +75,7 @@ export const Assets: React.FC = () => {
     setLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      let url = `http://localhost:4000/api/assets?`;
+      let url = `/api/assets?`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
       if (selectedCat) url += `categoryId=${selectedCat}&`;
       if (selectedStatus) url += `status=${selectedStatus}&`;
@@ -97,7 +97,7 @@ export const Assets: React.FC = () => {
   const fetchCategories = async () => {
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/assets/categories', {
+      const res = await fetch('/api/assets/categories', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -112,7 +112,7 @@ export const Assets: React.FC = () => {
     setHistoryLoading(true);
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch(`http://localhost:4000/api/assets/${assetId}/history`, {
+      const res = await fetch(`/api/assets/${assetId}/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -146,7 +146,7 @@ export const Assets: React.FC = () => {
 
     const token = localStorage.getItem('assetflow_token');
     try {
-      const res = await fetch('http://localhost:4000/api/assets', {
+      const res = await fetch('/api/assets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

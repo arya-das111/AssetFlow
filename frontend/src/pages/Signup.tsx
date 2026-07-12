@@ -7,6 +7,7 @@ interface DeptItem {
   id: number;
   name: string;
   code: string;
+  status?: string;
 }
 
 export const Signup: React.FC = () => {
@@ -24,7 +25,7 @@ export const Signup: React.FC = () => {
   useEffect(() => {
     const fetchDepts = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/organization/departments');
+        const res = await fetch('/api/organization/departments');
         if (res.ok) {
           const data = await res.json();
           setDepartments(data);
@@ -59,7 +60,7 @@ export const Signup: React.FC = () => {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:4000/api/auth/signup', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,7 +150,7 @@ export const Signup: React.FC = () => {
                 className="w-full bg-muted/40 text-foreground pl-11 pr-4 py-3 rounded-xl border border-border focus:border-primary/50 outline-none text-sm transition-all appearance-none cursor-pointer"
               >
                 <option value="">No Department Assigned</option>
-                {departments.map((d) => (
+                {departments.filter(d => d.status !== 'Inactive').map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name} ({d.code})
                   </option>
@@ -167,6 +168,7 @@ export const Signup: React.FC = () => {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
