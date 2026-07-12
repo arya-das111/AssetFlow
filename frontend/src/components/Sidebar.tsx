@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         flex flex-col justify-between p-6 transition-transform duration-300
         ${isOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'}
       `}>
-        <div>
+        <div className="overflow-y-auto flex-1 pr-1 scrollbar-thin mb-4">
           {/* Header Branding */}
           <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
             <div className="flex items-center gap-3">
