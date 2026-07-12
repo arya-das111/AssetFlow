@@ -45,14 +45,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AssetFlow API Server running smoothly' });
 });
 
+let isSeeding = false;
 // Database seed endpoint
 app.get('/api/seed', async (req, res, next) => {
+  if (isSeeding) {
+    return res.status(429).json({ error: 'Seeding is already in progress, please wait.' });
+  }
+  isSeeding = true;
   try {
     const seed = require('../prisma/seed');
     await seed();
     res.json({ status: 'ok', message: 'Database seeded successfully with default accounts' });
   } catch (err) {
     next(err);
+  } finally {
+    isSeeding = false;
   }
 });
 
